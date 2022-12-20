@@ -1,4 +1,4 @@
-baseURL = 'http://example.org/'
+baseURL = 'https://blog.zero-iee.com'
 languageCode = 'en-us'
-title = 'My New Hugo Site'
-theme = 'ananke'
+title = 'ZERO GmbH Tech Blog'
+theme = 'anubis-zero'
