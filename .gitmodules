@@ -1,6 +1,7 @@
 [submodule "themes/ananke"]
 	path = themes/ananke
 	url = https://github.com/theNewDynamic/gohugo-theme-ananke
-[submodule "themes/anubis"]
-	path = themes/anubis
-	url = https://github.com/mitrichius/hugo-theme-anubis.git
+[submodule "themes/anubis-zero"]
+	path = themes/anubis-zero
+	url = git@github.com:zero-iee/hugo-theme-anubis-zero.git
+	branch = master
