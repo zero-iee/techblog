@@ -26,7 +26,7 @@ mplayer -vo sdl:driver=fbcon ${VIDEOFILE} -loop 0
 In der zweiten Zeile wird die erste Videodatei ermittelt, die sich im Verzeichnis `/home/showdisplay/Videos` befindet (nach alphabetischer Reihenfolge). In Zeile 3 passiert dann die eigentliche `mplayer`-Magie:
 
 * `-vo sdl:driver=fbcon`: Video auf dem Framebuffer wiedergeben
-* `-loop 0`: Das Video in einer Endlosschleife abspielen. **WICHTIG: Dieser Parameter muss an letzter Stelle stehen - sonst startet nicht nur das Video neu - sondern die gesamte `mplayer` Instanz. Das führt zu einem deutlichen Flackern beim Neustart. Das Verhalten ist nicht dokumentiert.**
+* `-loop 0`: Das Video in einer Endlosschleife abspielen. **WICHTIG: Dieser Parameter muss an letzter Stelle stehen - sonst startet nicht nur das Video neu, sondern die gesamte `mplayer` Instanz. Das führt zu einem deutlichen Flackern beim Neustart. Das Verhalten ist nicht dokumentiert. Deshalb sei hiermit explizit darauf hingewiesen.**
 
 Das Startscript wird nun noch ausführbar gemacht: 
 
