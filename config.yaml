@@ -16,6 +16,7 @@ languages:
     weight: 2
 
 params:
+  style: auto-without-switcher
   readMore: true
   social:
   - id: github
