@@ -1,0 +1,23 @@
+baseURL: https://blog.zero-iee.com
+languageCode: de-de
+title: ZERO GmbH Tech Blog
+theme: anubis-zero
+
+defaultContentLanguage: de
+
+languages:
+  de: 
+    contentDir: content
+    languageName: Deutsch
+    weight: 1
+  en:
+    contentDir: content/en
+    languageName: English
+    weight: 2
+
+params:
+  social:
+  - id: github
+    name: zero-iee
+  - id: linkedin
+    url: https://de.linkedin.com/company/zero-iee
