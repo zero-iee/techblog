@@ -1,4 +1,16 @@
 baseURL = 'https://blog.zero-iee.com'
-languageCode = 'en-us'
+languageCode = 'de-de'
 title = 'ZERO GmbH Tech Blog'
 theme = 'anubis-zero'
+
+defaultContentLanguage = 'de'
+
+[languages]
+  [languages.de]
+    contentDir = 'content'
+    languageName = 'Deutsch'
+    weight = 1
+  [languages.en]
+    contentDir = 'content/en'
+    languageName = 'English'
+    weight = 2
