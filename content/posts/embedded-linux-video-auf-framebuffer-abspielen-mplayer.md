@@ -8,6 +8,8 @@ tags: ["linux", "embedded", "video", "mplayer", "ubuntu"]
 
 Vor allem für Demozwecke, z.B. auf Messen, fragen Kunden immer wieder nach Displayansteuerungen, die eine Videodatei auf einem oder mehreren Bildschirmen präsentieren. Während sich zum Teil abenteuerliche Lösungen mit Windows und automatisch startenden PowerPoint-Präsentationen mit eingebettetem Video finden lassen, waren wir von ZERO auf der Suche nach einer eleganteren Lösung, die zudem zügig startet und wenig Raum für Fehlbedienung lässt. 
 
+<!--more-->
+
 Zentraler Bestandteil in unserem Ubuntu-basierten Setup ist der `mplayer` - ein Videoplayer, der seinen Videoutput nicht nur in einer grafischen Desktopumgebung einbetten kann, sondern diesen auch ganz ohne GUI direkt auf den Framebuffer schreiben kann. So können wir auf das Laden einer Xorg- oder Wayland-basierten Desktupumgebung verzichten und beschlenigen den Bootprozess deutlich. Zudem entstehen keine Hürden wie Login oder automatisch startende Applikationen, die das Video verdecken (z.B. der Ubuntu Softwareupdatedienst). 
 
 Der `mplayer` kann aus den Standardpaketquellen von Ubuntu bezogen werden:
