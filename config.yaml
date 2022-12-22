@@ -7,11 +7,9 @@ defaultContentLanguage: de
 
 languages:
   de: 
-    contentDir: content
     languageName: Deutsch
     weight: 1
   en:
-    contentDir: content/en
     languageName: English
     weight: 2
 
