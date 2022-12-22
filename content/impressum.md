@@ -4,6 +4,7 @@ date: 2022-12-20T06:08:14-08:00
 draft: false
 author: "Thomas Leister <thomas.leister@zero-iee.com>"
 tags: []
+disable_feed: true
 ---
 
 ## Angaben gemäß § 5 TMG
