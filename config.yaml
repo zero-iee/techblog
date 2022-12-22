@@ -16,6 +16,7 @@ languages:
     weight: 2
 
 params:
+  readMore: true
   social:
   - id: github
     name: zero-iee
