@@ -1,7 +1,7 @@
 ---
 title: "Linux Kernelmodule mit Source-Änderungen neu kompilieren"
 date: 2022-12-22T23:15:52-08:00
-draft: true
+draft: false
 author: "Thomas Leister <thomas.leister@zero-iee.com>"
 tags: ["linux", "kernel", "kompilieren"]
 ---
