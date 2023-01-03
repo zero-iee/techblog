@@ -15,11 +15,11 @@ sudo dkpg -i ./linux*.deb
 &lt;/code>&lt;/pre>
 &lt;p>Target neu starten - und fertig! Ein &lt;code>uname -r&lt;/code> sollte jetzt die neue kernelversion zeigen. Und auch die aktualisierten USB- und Netzwerktreiber für das Quectel Modem sollten jetzt den Dienst aufnehmen und die passenden Device Nodes unter /dev anlegen:&lt;/p>
 &lt;ul>
-&lt;li>&amp;lsquo;/dev/cdc-wdm0&amp;rsquo;&lt;/li>
-&lt;li>&amp;lsquo;/dev/ttyUSB0&amp;rsquo;&lt;/li>
-&lt;li>&amp;lsquo;/dev/ttyUSB1&amp;rsquo;&lt;/li>
-&lt;li>&amp;lsquo;/dev/ttyUSB2&amp;rsquo;&lt;/li>
-&lt;li>&amp;lsquo;/dev/ttyUSB3&amp;rsquo;&lt;/li>
+&lt;li>&lt;code>/dev/cdc-wdm0&lt;/code>&lt;/li>
+&lt;li>&lt;code>/dev/ttyUSB0&lt;/code>&lt;/li>
+&lt;li>&lt;code>/dev/ttyUSB1&lt;/code>&lt;/li>
+&lt;li>&lt;code>/dev/ttyUSB2&lt;/code>&lt;/li>
+&lt;li>&lt;code>/dev/ttyUSB3&lt;/code>&lt;/li>
 &lt;/ul>
 &lt;p>&lt;em>(USB Nodes können je nach angeschlossener Peripherie auch anders nummeriert sein!)&lt;/em>&lt;/p>
 &lt;h2 id="eine-verbindung-über-den-networkmanager-und-modemmanager-herstellen" >Eine Verbindung über den NetworkManager und ModemManager herstellen
