@@ -5,9 +5,9 @@
 &lt;p>Unter &lt;a href="https://kernel.ubuntu.com/~kernel-ppa/mainline/v6.0.1/">https://kernel.ubuntu.com/~kernel-ppa/mainline/v6.0.1/&lt;/a> werden vier wichtige .deb Pakete zum Download angeboten:&lt;/p>
 &lt;ul>
 &lt;li>&lt;code>amd64/linux-headers-6.0.1-060001-generic_6.0.1-060001.202210120833_amd64.deb&lt;/code>&lt;/li>
-&lt;li>&amp;lsquo;amd64/linux-headers-6.0.1-060001_6.0.1-060001.202210120833_all.deb&amp;rsquo;&lt;/li>
-&lt;li>&amp;lsquo;amd64/linux-image-unsigned-6.0.1-060001-generic_6.0.1-060001.202210120833_amd64.deb&amp;rsquo;&lt;/li>
-&lt;li>&amp;lsquo;amd64/linux-modules-6.0.1-060001-generic_6.0.1-060001.202210120833_amd64.deb&amp;rsquo;&lt;/li>
+&lt;li>&lt;code>amd64/linux-headers-6.0.1-060001_6.0.1-060001.202210120833_all.deb&lt;/code>&lt;/li>
+&lt;li>&lt;code>amd64/linux-image-unsigned-6.0.1-060001-generic_6.0.1-060001.202210120833_amd64.deb&lt;/code>&lt;/li>
+&lt;li>&lt;code>amd64/linux-modules-6.0.1-060001-generic_6.0.1-060001.202210120833_amd64.deb&lt;/code>&lt;/li>
 &lt;/ul>
 &lt;p>Alle vier Dateien werden heruntergeladen und über den Paketmanager installiert:&lt;/p>
 &lt;pre>&lt;code>cd Downloads
