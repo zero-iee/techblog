@@ -1,4 +1,79 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>linux on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/linux/</link><description>ZERO GmbH Tech Blog (linux)</description><generator>Hugo -- gohugo.io</generator><language>de-de</language><lastBuildDate>Fri, 23 Dec 2022 09:20:52 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/linux/index.xml" rel="self" type="application/rss+xml"/><item><title>Linux Kernelmodule mit Source-Änderungen neu kompilieren</title><link>https://blog.zero-iee.com/posts/linux-kernelmodule-mit-aenderungen-neu-kompilieren/</link><pubDate>Fri, 23 Dec 2022 09:20:52 +0100</pubDate><guid>https://blog.zero-iee.com/posts/linux-kernelmodule-mit-aenderungen-neu-kompilieren/</guid><description>&lt;p>Wer - wie wir bei der ZERO GmbH - mit neuer Hardware hantiert, die vom Linux-Kernel noch gar nicht oder nur teilweise unterstützt wird, muss in einigen Fällen bestehende Kerneltreiber anpassen. In unserem konkreten Fall ging es dabei um ein 5G Mobilfunkmodem, das vom uns eingesetzten Linux-Kernel noch nicht korrekt als solches erkannt wurde. Die Hardware war mit ihrer USB Vendor- und Product-ID noch nicht in den dazugehörigen Treibern registriert und weitere Detailanpassungen mussten in den betroffenen Subsystemen vorgenommen werden.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>linux on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/linux/</link><description>ZERO GmbH Tech Blog (linux)</description><generator>Hugo -- gohugo.io</generator><language>de-de</language><lastBuildDate>Mon, 02 Jan 2023 14:20:04 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/linux/index.xml" rel="self" type="application/rss+xml"/><item><title>Quectel RM520N-GL 5G Mobilfunkmodem unter Ubuntu Linux in Betrieb nehmen</title><link>https://blog.zero-iee.com/posts/quectel-rm520n-gl-5g-modem-unter-ubuntu-linux/</link><pubDate>Mon, 02 Jan 2023 14:20:04 +0100</pubDate><guid>https://blog.zero-iee.com/posts/quectel-rm520n-gl-5g-modem-unter-ubuntu-linux/</guid><description>&lt;p>Um verschiedene 5G Usecases zu demonstrieren, sollte im Rahmen eines Projekts ein 5G-Modem an einem Ubuntu-basierten Mini PC betrieben werden. Hierzu haben wir uns das RM520N-GL von Quectel besorgt.&lt;/p>
+&lt;p>Das Modem wird vom Linux-Kernel erst ab Version 6.0 vollständig unterstützt. Die dazugehörigen Patches sind &lt;a href="https://patchwork.kernel.org/project/linux-usb/patch/tencent_23054B863154DC02C6E98E5942416BFC200A@qq.com/">hier (USB &amp;ldquo;option&amp;rdquo; Treiber)&lt;/a> bzw &lt;a href="https://www.spinics.net/lists/linux-usb/msg230835.html">hier (qmi_wwan Treiber)&lt;/a> zu finden.&lt;/p>
+&lt;p>Quectel liefert in der Dokumentation zwar auch Hinweise aus, an welchen Stellen die beteffenden Treiber angepasst werden müssen, doch das erwies sich in unserem Fall als fehleranfällig. Leider werden keine fertigen Git-Patches geliefert, sondern nur Code-Snippets in einem PDF-Dokument.&lt;/p>
+&lt;p>Einfacher war es, den Ubuntu 22.04.1 LTS Kernel von Version 5.17 auf Version 6.0.1 anzuheben. Dazu muss der Kernel und seine Module nicht unbedingt neu gebaut werden. Canonical stellt bereits vorkompilierte Kernelartefakte in Form von Debian-Paketen zur Verfügung. Diese werden zwar nicht offiziell unterstützt oder mit Updates versorgt, doch für unsere Demonstrationszwecke war das völlig ausreichend.&lt;/p>
+&lt;p>Unter &lt;a href="https://kernel.ubuntu.com/~kernel-ppa/mainline/v6.0.1/">https://kernel.ubuntu.com/~kernel-ppa/mainline/v6.0.1/&lt;/a> werden vier wichtige .deb Pakete zum Download angeboten:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>amd64/linux-headers-6.0.1-060001-generic_6.0.1-060001.202210120833_amd64.deb&lt;/code>&lt;/li>
+&lt;li>&amp;lsquo;amd64/linux-headers-6.0.1-060001_6.0.1-060001.202210120833_all.deb&amp;rsquo;&lt;/li>
+&lt;li>&amp;lsquo;amd64/linux-image-unsigned-6.0.1-060001-generic_6.0.1-060001.202210120833_amd64.deb&amp;rsquo;&lt;/li>
+&lt;li>&amp;lsquo;amd64/linux-modules-6.0.1-060001-generic_6.0.1-060001.202210120833_amd64.deb&amp;rsquo;&lt;/li>
+&lt;/ul>
+&lt;p>Alle vier Dateien werden heruntergeladen und über den Paketmanager installiert:&lt;/p>
+&lt;pre>&lt;code>cd Downloads
+sudo dkpg -i ./linux*.deb
+&lt;/code>&lt;/pre>
+&lt;p>Target neu starten - und fertig! Ein &lt;code>uname -r&lt;/code> sollte jetzt die neue kernelversion zeigen. Und auch die aktualisierten USB- und Netzwerktreiber für das Quectel Modem sollten jetzt den Dienst aufnehmen und die passenden Device Nodes unter /dev anlegen:&lt;/p>
+&lt;ul>
+&lt;li>&amp;lsquo;/dev/cdc-wdm0&amp;rsquo;&lt;/li>
+&lt;li>&amp;lsquo;/dev/ttyUSB0&amp;rsquo;&lt;/li>
+&lt;li>&amp;lsquo;/dev/ttyUSB1&amp;rsquo;&lt;/li>
+&lt;li>&amp;lsquo;/dev/ttyUSB2&amp;rsquo;&lt;/li>
+&lt;li>&amp;lsquo;/dev/ttyUSB3&amp;rsquo;&lt;/li>
+&lt;/ul>
+&lt;p>&lt;em>(USB Nodes können je nach angeschlossener Peripherie auch anders nummeriert sein!)&lt;/em>&lt;/p>
+&lt;h2 id="eine-verbindung-über-den-networkmanager-und-modemmanager-herstellen" >Eine Verbindung über den NetworkManager und ModemManager herstellen
+&lt;span>
+&lt;a href="#eine-verbindung-%c3%bcber-den-networkmanager-und-modemmanager-herstellen">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Der &amp;ldquo;schönste&amp;rdquo; Weg führt über die NetworkManager-Integration des ModemManagers. Um zu sehen, ob das Quectel Modem überhaupt als solches vom ModemManager erkannt wurde, kann ein&lt;/p>
+&lt;pre>&lt;code>mmcli --modem=0
+&lt;/code>&lt;/pre>
+&lt;p>ausgeführt werden. Ein paar Informationen zum Modemstatus sollten hier aufgelistet werden.&lt;/p>
+&lt;p>Wer eine mit PIN gesicherte SIM-Karte im System nutzt, wird diese zuerst entsperren müssen. Dazu kann über das vorher genannte Kommando zuerst der virtuelle Pfad des SIM-Slots ermittelt werden, z.B.&lt;/p>
+&lt;pre>&lt;code>-----------------------------------
+SIM | primary sim path: /org/freedesktop/ModemManager1/SIM/0
+| sim slot paths: slot 1: /org/freedesktop/ModemManager1/SIM/0 (active)
+| slot 2: none
+&lt;/code>&lt;/pre>
+&lt;p>&amp;hellip; und dann die entsprechende SIM (Index 0) aktiviert werden:&lt;/p>
+&lt;pre>&lt;code>mmcli -i=0 --pin=1234
+&lt;/code>&lt;/pre>
+&lt;p>Wer die SIM permanent entsperrt lassen will, kann die PIN-Sperre entfernen:&lt;/p>
+&lt;pre>&lt;code>mmcli -i=0 --pin=1234 --disable-pin
+&lt;/code>&lt;/pre>
+&lt;p>Sobald die SIM-Karte entsperrt ist, sollte eine Verbindung mit dem Modul möglich sein:&lt;/p>
+&lt;pre>&lt;code>nmcli c add type gsm ifname cdc-wdm0 con-name 5g apn internet.telekom
+nmcli c up 5g
+&lt;/code>&lt;/pre>
+&lt;p>Bis sich das Kommando zurückmeldet, können einige Sekunden vergehen. Wir haben hier absichtlich den alten &lt;code>internet.telekom&lt;/code> APN gewählt, weil wir mit dem neueren &amp;ldquo;internet.v6.telekom&amp;rdquo; APN keine Verbindung herstellen konnten. Ursache (noch) unbekannt.&lt;/p>
+&lt;h2 id="verbindung-über-das-qmi-network-tool" >Verbindung über das &lt;code>qmi-network&lt;/code> tool
+&lt;span>
+&lt;a href="#verbindung-%c3%bcber-das-qmi-network-tool">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Statt des Network-/ModemManagers kann für die Verbindungsherstellung auch das &lt;code>qmi-network&lt;/code> Script aus dem &lt;code>libqmi-utils&lt;/code> Paket verwendet werden. Dazu werden in &lt;code>/etc/qmi-network.conf&lt;/code> die richtigen Einstellungen für das Nodem hinterlegt:&lt;/p>
+&lt;pre>&lt;code>DEVICE=/dev/cdc-wdm0
+DEVICE_OPEN_QMI=YES
+PROXY=YES
+&lt;/code>&lt;/pre>
+&lt;p>Speziell die &lt;code>DEVICE_OPEN_QMI&lt;/code> scheint hier eine wichtige Rolle zu spielen. Anders als in ähnlichen Anleitungen zur Inbetriebnahme von Mobilfunkmodems konnten wir hierauf nicht verzichten.&lt;/p>
+&lt;p>Schließlich lässt sich eine Verbindung starten:&lt;/p>
+&lt;pre>&lt;code>sudo qmi-network /dev/cdc-wdm0 start
+&lt;/code>&lt;/pre>
+&lt;p>Allerdings kümmert sich das Script nicht um das Beziehen einer IP-Adresse und der entsprechenden Konfiguration des &lt;code>wwan0&lt;/code> Netzwerkinterfaces. Hier hilft der &lt;code>udhcpc&lt;/code> Client aus dem gleichnamigen Debian-Paket:&lt;/p>
+&lt;pre>&lt;code>sudo udhcpc -i wwan0
+&lt;/code>&lt;/pre>
+&lt;p>Im Idealfall ist nach wenigen Sekunden eine lokale IP-Adresse auf dem &lt;code>wwan0&lt;/code> Interface konfiguriert und lässt eine Kommunikation ins Internet zu:&lt;/p>
+&lt;pre>&lt;code>curl ifconfig.me
+&lt;/code>&lt;/pre>
+&lt;p>zeigt dabei die IP-Adresse an, die für Verbindungen ins Internet aktuell genutzt wird. Es empfiehlt sich, vorher sicherzustellen, dass der Mini-PC über keine Ethernetverbindung ins Internet mehr verfügt. Dazu wird die default-Route zum lokalen Ethernetinterface &lt;code>enp0s29f1&lt;/code> entfernt:&lt;/p>
+&lt;pre>&lt;code>sudo ip route del default via 192.168.179.1 dev enp0s29f1
+&lt;/code>&lt;/pre>
+&lt;p>&lt;em>(kommando anpassen - je nach Output des Kommandos &lt;code>ip route&lt;/code>)&lt;/em>&lt;/p></description></item><item><title>Linux Kernelmodule mit Source-Änderungen neu kompilieren</title><link>https://blog.zero-iee.com/posts/linux-kernelmodule-mit-aenderungen-neu-kompilieren/</link><pubDate>Fri, 23 Dec 2022 09:20:52 +0100</pubDate><guid>https://blog.zero-iee.com/posts/linux-kernelmodule-mit-aenderungen-neu-kompilieren/</guid><description>&lt;p>Wer - wie wir bei der ZERO GmbH - mit neuer Hardware hantiert, die vom Linux-Kernel noch gar nicht oder nur teilweise unterstützt wird, muss in einigen Fällen bestehende Kerneltreiber anpassen. In unserem konkreten Fall ging es dabei um ein 5G Mobilfunkmodem, das vom uns eingesetzten Linux-Kernel noch nicht korrekt als solches erkannt wurde. Die Hardware war mit ihrer USB Vendor- und Product-ID noch nicht in den dazugehörigen Treibern registriert und weitere Detailanpassungen mussten in den betroffenen Subsystemen vorgenommen werden.&lt;/p>
 &lt;p>Glücklicherweise lagert die Linuxdistribution Ubuntu die meisten Kerneltreiber in flexibel generierbare Kernelmodule (&lt;code>.ko&lt;/code> Dateien) aus, sodass nicht der gesamte Kernel nach Änderungen neu kompiliert werden muss. Wie Änderungen beispielhaft am USB-Treiber &amp;ldquo;&lt;code>option&lt;/code>&amp;rdquo; durchgeführt werden können, wird im Folgenden erklärt.&lt;/p>
 &lt;p>Zunächst einmal wird eine Quelltextkopie des aktuell laufenden Linux-Kernels heruntergeladen. Unter Ubuntu funktioniert das ganz einfach über die Installation des jeweiligen &lt;code>linux-source&lt;/code> Pakets:&lt;/p>
 &lt;pre>&lt;code>sudo apt install linux-source

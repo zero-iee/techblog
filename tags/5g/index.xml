@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>ubuntu on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/ubuntu/</link><description>ZERO GmbH Tech Blog (ubuntu)</description><generator>Hugo -- gohugo.io</generator><language>de-de</language><lastBuildDate>Mon, 02 Jan 2023 14:20:04 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/ubuntu/index.xml" rel="self" type="application/rss+xml"/><item><title>Quectel RM520N-GL 5G Mobilfunkmodem unter Ubuntu Linux in Betrieb nehmen</title><link>https://blog.zero-iee.com/posts/quectel-rm520n-gl-5g-modem-unter-ubuntu-linux/</link><pubDate>Mon, 02 Jan 2023 14:20:04 +0100</pubDate><guid>https://blog.zero-iee.com/posts/quectel-rm520n-gl-5g-modem-unter-ubuntu-linux/</guid><description>&lt;p>Um verschiedene 5G Usecases zu demonstrieren, sollte im Rahmen eines Projekts ein 5G-Modem an einem Ubuntu-basierten Mini PC betrieben werden. Hierzu haben wir uns das RM520N-GL von Quectel besorgt.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>5g on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/5g/</link><description>ZERO GmbH Tech Blog (5g)</description><generator>Hugo -- gohugo.io</generator><language>de-de</language><lastBuildDate>Mon, 02 Jan 2023 14:20:04 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/5g/index.xml" rel="self" type="application/rss+xml"/><item><title>Quectel RM520N-GL 5G Mobilfunkmodem unter Ubuntu Linux in Betrieb nehmen</title><link>https://blog.zero-iee.com/posts/quectel-rm520n-gl-5g-modem-unter-ubuntu-linux/</link><pubDate>Mon, 02 Jan 2023 14:20:04 +0100</pubDate><guid>https://blog.zero-iee.com/posts/quectel-rm520n-gl-5g-modem-unter-ubuntu-linux/</guid><description>&lt;p>Um verschiedene 5G Usecases zu demonstrieren, sollte im Rahmen eines Projekts ein 5G-Modem an einem Ubuntu-basierten Mini PC betrieben werden. Hierzu haben wir uns das RM520N-GL von Quectel besorgt.&lt;/p>
 &lt;p>Das Modem wird vom Linux-Kernel erst ab Version 6.0 vollständig unterstützt. Die dazugehörigen Patches sind &lt;a href="https://patchwork.kernel.org/project/linux-usb/patch/tencent_23054B863154DC02C6E98E5942416BFC200A@qq.com/">hier (USB &amp;ldquo;option&amp;rdquo; Treiber)&lt;/a> bzw &lt;a href="https://www.spinics.net/lists/linux-usb/msg230835.html">hier (qmi_wwan Treiber)&lt;/a> zu finden.&lt;/p>
 &lt;p>Quectel liefert in der Dokumentation zwar auch Hinweise aus, an welchen Stellen die beteffenden Treiber angepasst werden müssen, doch das erwies sich in unserem Fall als fehleranfällig. Leider werden keine fertigen Git-Patches geliefert, sondern nur Code-Snippets in einem PDF-Dokument.&lt;/p>
 &lt;p>Einfacher war es, den Ubuntu 22.04.1 LTS Kernel von Version 5.17 auf Version 6.0.1 anzuheben. Dazu muss der Kernel und seine Module nicht unbedingt neu gebaut werden. Canonical stellt bereits vorkompilierte Kernelartefakte in Form von Debian-Paketen zur Verfügung. Diese werden zwar nicht offiziell unterstützt oder mit Updates versorgt, doch für unsere Demonstrationszwecke war das völlig ausreichend.&lt;/p>
@@ -73,43 +73,4 @@ PROXY=YES
 &lt;p>zeigt dabei die IP-Adresse an, die für Verbindungen ins Internet aktuell genutzt wird. Es empfiehlt sich, vorher sicherzustellen, dass der Mini-PC über keine Ethernetverbindung ins Internet mehr verfügt. Dazu wird die default-Route zum lokalen Ethernetinterface &lt;code>enp0s29f1&lt;/code> entfernt:&lt;/p>
 &lt;pre>&lt;code>sudo ip route del default via 192.168.179.1 dev enp0s29f1
 &lt;/code>&lt;/pre>
-&lt;p>&lt;em>(kommando anpassen - je nach Output des Kommandos &lt;code>ip route&lt;/code>)&lt;/em>&lt;/p></description></item><item><title>Embedded Linux: Video in Endlosschleife auf Framebuffer abspielen mit mplayer</title><link>https://blog.zero-iee.com/posts/embedded-linux-video-auf-framebuffer-abspielen-mplayer/</link><pubDate>Wed, 21 Dec 2022 02:38:26 -0800</pubDate><guid>https://blog.zero-iee.com/posts/embedded-linux-video-auf-framebuffer-abspielen-mplayer/</guid><description>&lt;p>Vor allem für Demozwecke, z.B. auf Messen, fragen Kunden immer wieder nach Displayansteuerungen, die eine Videodatei auf einem oder mehreren Bildschirmen präsentieren. Während sich zum Teil abenteuerliche Lösungen mit Windows und automatisch startenden PowerPoint-Präsentationen mit eingebettetem Video finden lassen, waren wir von ZERO auf der Suche nach einer eleganteren Lösung, die zudem zügig startet und wenig Raum für Fehlbedienung lässt.&lt;/p>
-&lt;p>Zentraler Bestandteil in unserem Ubuntu-basierten Setup ist der &lt;code>mplayer&lt;/code> - ein Videoplayer, der seinen Videoutput nicht nur in einer grafischen Desktopumgebung einbetten kann, sondern diesen auch ganz ohne GUI direkt auf den Framebuffer schreiben kann. So können wir auf das Laden einer Xorg- oder Wayland-basierten Desktupumgebung verzichten und beschlenigen den Bootprozess deutlich. Zudem entstehen keine Hürden wie Login oder automatisch startende Applikationen, die das Video verdecken (z.B. der Ubuntu Softwareupdatedienst).&lt;/p>
-&lt;p>Der &lt;code>mplayer&lt;/code> kann aus den Standardpaketquellen von Ubuntu bezogen werden:&lt;/p>
-&lt;pre>&lt;code>apt update
-apt install mplayer
-&lt;/code>&lt;/pre>
-&lt;p>Nach der Installation wird unter &lt;code>/opt/runvideo.sh&lt;/code> ein Script angelegt, das &lt;code>mplayer&lt;/code> mit einigen Parametern startet:&lt;/p>
-&lt;pre tabindex="0">&lt;code>#!/bin/bash
-VIDEOFILE=$(find /home/showdisplay/Videos/ -type f -print -quit)
-mplayer -vo sdl:driver=fbcon ${VIDEOFILE} -loop 0
-&lt;/code>&lt;/pre>&lt;p>In der zweiten Zeile wird die erste Videodatei ermittelt, die sich im Verzeichnis &lt;code>/home/showdisplay/Videos&lt;/code> befindet (nach alphabetischer Reihenfolge). In Zeile 3 passiert dann die eigentliche &lt;code>mplayer&lt;/code>-Magie:&lt;/p>
-&lt;ul>
-&lt;li>&lt;code>-vo sdl:driver=fbcon&lt;/code>: Video auf dem Framebuffer wiedergeben&lt;/li>
-&lt;li>&lt;code>-loop 0&lt;/code>: Das Video in einer Endlosschleife abspielen. &lt;strong>WICHTIG: Dieser Parameter muss an letzter Stelle stehen - sonst startet nicht nur das Video neu, sondern die gesamte &lt;code>mplayer&lt;/code> Instanz. Das führt zu einem deutlichen Flackern beim Neustart. Das Verhalten ist nicht dokumentiert. Deshalb sei hiermit explizit darauf hingewiesen.&lt;/strong>&lt;/li>
-&lt;/ul>
-&lt;p>Das Startscript wird nun noch ausführbar gemacht:&lt;/p>
-&lt;pre>&lt;code>chmod u+x /opt/runvideo.sh
-&lt;/code>&lt;/pre>
-&lt;p>&amp;hellip; und eine &lt;code>systemd&lt;/code> Servicedatei wird erstellt, um das Script beim Boot automatisch auszuführen:&lt;/p>
-&lt;pre tabindex="0">&lt;code>[Unit]
-Description=Run video
-ConditionPathExists=/opt/runvideo.sh
-[Service]
-Type=forking
-ExecStart=/opt/runvideo.sh
-TimeoutSec=0
-StandardOutput=tty
-RemainAfterExit=yes
-SysVStartPriority=99
-[Install]
-WantedBy=multi-user.target
-&lt;/code>&lt;/pre>&lt;p>Zuletzt wird der neue Service aktiviert:&lt;/p>
-&lt;pre>&lt;code>systemctl daemon-reload
-systemctl enable runvideo.service
-&lt;/code>&lt;/pre>
-&lt;p>Da keine GUI benötigt wird (bzw. in diesem Fall sogar stört), wird der Gnome Desktop Manager (GDM) deaktiviert:&lt;/p>
-&lt;pre>&lt;code>sudo systemctl disable gdm
-&lt;/code>&lt;/pre>
-&lt;p>Fertig!&lt;/p>
-&lt;p>Sobald der Displaycontroller neu gestartet wird, wird die erste Videodatei aus &lt;code>/home/showdisplay/Videos/&lt;/code> abgespielt - zumindest, solange das Format vom &lt;code>mplayer&lt;/code> unterstützt wird.&lt;/p></description></item></channel></rss>
+&lt;p>&lt;em>(kommando anpassen - je nach Output des Kommandos &lt;code>ip route&lt;/code>)&lt;/em>&lt;/p></description></item></channel></rss>
