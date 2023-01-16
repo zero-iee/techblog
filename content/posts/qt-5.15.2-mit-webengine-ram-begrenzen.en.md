@@ -3,7 +3,7 @@ title: "Qt 5.15.2 with WebEngine (Chromium) - Limit RAM usage to avoid crashes"
 date: 2023-01-11T14:19:06+01:00
 draft: false
 author: "Thomas Leister <thomas.leister@zero-iee.com>"
-tags: ["qt", "chromium"]
+tags: ["qt", "buildprocess", "webengine", "chromium"]
 ---
 
 
@@ -19,7 +19,7 @@ For this purpose the environment variable `NINJAJOBS` can be set before a `make 
 
 	export NINJAJOBS="-j16"
 	
-If a `make` is subsequently executed, the usual Qt components are compiled with all cores, while the Ninja-based parts (in this case Chromium as part of the WebEngine) are built with fewer CPU kernels to conserve RAM. 
+If a `make` is subsequently executed, the usual Qt components are compiled with all cores, while the Ninja-based parts (in this case Chromium as part of the WebEngine) are built with fewer CPU cores to conserve RAM. 
 
 For our combination of 32 GB RAM and 24 CPU cores, we experimentally determined a count of 16 kernels with which to still run our build process. With only 8 CPU cores, RAM usage peaked at about 12 GB. 
 
