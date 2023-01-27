@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>pistache on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/en/tags/pistache/</link><description>ZERO GmbH Tech Blog (pistache)</description><generator>Hugo -- gohugo.io</generator><language>de-de</language><lastBuildDate>Fri, 27 Jan 2023 12:17:09 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/en/tags/pistache/index.xml" rel="self" type="application/rss+xml"/><item><title>Pistache REST API Server Returns Incorrect Responses to Requests</title><link>https://blog.zero-iee.com/en/posts/pistache-rest-api-server-gibt-falsche-daten-zur%C3%BCck/</link><pubDate>Fri, 27 Jan 2023 12:17:09 +0100</pubDate><guid>https://blog.zero-iee.com/en/posts/pistache-rest-api-server-gibt-falsche-daten-zur%C3%BCck/</guid><description>&lt;p>Until a few hours ago we had to deal with a strange bug related to the C++ HTTP library &amp;ldquo;&lt;a href="https://pistacheio.github.io/pistache/">Pistache&lt;/a>&amp;rdquo;, which could not be identified completely at first. Maybe we are not the only ones - so in this post we want to briefly present the setup and our fix.&lt;/p>
+&lt;p>The environment consists of a C++ based backend from which data is to be read via a REST API and displayed in a web browser.&lt;/p>
+&lt;p>The request of the data from the API is done via a Javascript. We work without a library - quite traditionally using &lt;a href="https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Using_XMLHttpRequest">XMLHttpRequest&lt;/a>. Since several different data sets are displayed on the website, several parallel &lt;a href="https://de.wikipedia.org/wiki/Ajax_(programming)">Ajax&lt;/a> requests to the REST API are periodically formulated and transmitted in the background.&lt;/p>
+&lt;p>&lt;strong>The problem was that we - seemingly randomly - kept getting Ajax responses back that we had not requested in this context.&lt;/strong> For example, if a request for all available cars was sent, we got the response for the request for all available ships. In parallel, all available ships were also requested in the background - but just not in &lt;em>the&lt;/em> function that was responsible for the cars. It seemed that the answers to HTTP requests were partially mixed.&lt;/p>
+&lt;p>The first assumption was that we had a bug in our Javascript and were overwriting variables with each other on simultaneous requests. However, after careful checking and clearly renaming the variables involved, we were able to rule that out.&lt;/p>
+&lt;p>A bug in the web browser that caused requests and responses to get mixed up? Unlikely. The problem occurred in both the Chromium and Firefox web browsers.&lt;/p>
+&lt;p>Then it had to be the backend. We started to examine the backend more closely. It turned out that the problems only occurred when a certain HTTP handler function was called. This custom function is called by the Pistache library when a request is received. Within the function, the parameters of the request can be checked and processed, and a suitable response can be formulated.&lt;/p>
+&lt;p>By gradually commenting out within the function and reducing it to the essentials (namely, sending a suitable response to the web browser), we were finally able to narrow down the problem.&lt;/p>
+&lt;p>Within the function there was the following code section:&lt;/p>
+&lt;pre tabindex="0">&lt;code>void ApiHandler::getVehicle(const Rest::Request &amp;amp;request, Http::ResponseWriter response){
+json j;
+[...]
+if (myModel-&amp;gt;getType() == &amp;#34;car&amp;#34;) {
+[...]
+j[&amp;#34;licensePlate&amp;#34;] = car-&amp;gt;getLicensePlate();
+j[&amp;#34;owner&amp;#34;] = car-&amp;gt;getOwnerName();
+response.send(Http::Code::Ok, j.dump() + &amp;#39;\n&amp;#39;); // Respond with JSON string
+} else if (myModel-&amp;gt;getType() == &amp;#34;ship&amp;#34;) {
+[...]
+j[&amp;#34;homeCountry&amp;#34;] = car-&amp;gt;getHomeCountry();
+j[&amp;#34;owner&amp;#34;] = car-&amp;gt;getOwnerName();
+response.send(Http::Code::Ok, j.dump() + &amp;#39;\n&amp;#39;); // Respond with JSON string
+}
+response.send(Http::Code::Unprocessable_Entity);
+}
+&lt;/code>&lt;/pre>&lt;p>Found the mistake? Quite simple: The intention was to return an &amp;ldquo;Unprocessable_Entity&amp;rdquo; error if the function was executed for a model other than a &amp;ldquo;Car&amp;rdquo; or &amp;ldquo;Ship&amp;rdquo; model. However, an &lt;code>else&lt;/code> was forgotten. Correctly it should be like this:&lt;/p>
+&lt;pre tabindex="0">&lt;code> else {
+response.send(Http::Code::Unprocessable_Entity);
+}
+&lt;/code>&lt;/pre>&lt;p>Omitting the &lt;code>else&lt;/code> here is possible in cases where the further processing of the function is stopped by &amp;ldquo;return&amp;rdquo;. But not here - in our case the error leads to &lt;code>response.send&lt;/code> being run twice in most cases.&lt;/p>
+&lt;p>The Pistache HTTP server does not seem to be able to cope with this and behaves &lt;em>undefined&lt;/em>. We did not investigate further within the Pistache library, but it seemed worth mentioning that the library behaves unpredictably in such a case and apparently even mixes up responses to concurrent HTTP requests.&lt;/p>
+&lt;p>So if you are struggling with an uncontrollably behaving Pistache server, you might want to check your code for duplicate response.send() statements.&lt;/p></description></item></channel></rss>
