@@ -6,7 +6,7 @@ author: "Thomas Leister <thomas.leister@zero-iee.com>"
 tags: ["qt", "raspi", "raspberrypi", ""]
 ---
 
-Während der Entwicklung einer Qt-basierten Anwendung auf einem Raspberry Pi 4 (CM) sind wir von der ZERO GmbH vor ein paar Tagen auf ein kurioses Problem gestoßen: Die Anwendung beinhaltet zwei Anwendungsfenster - ein QT Quick Fenster und ein weiteres Fenster, das mittels WebEngine (Chromium) eine Webanwendung darstellt. Die Inhalte in beiden Fenstern wurden während des Debuggins und beim manuellen Starten der Binärdatei aus der Kommandozeile heraus flüssig dargestellt. Bei Animationen und Mausbewegungen konnten wir keine bemerkenswerten Ruckler feststellen. 
+Während der Entwicklung einer Qt-basierten Anwendung auf einem Raspberry Pi 4 (CM) sind wir von der ZERO GmbH vor ein paar Tagen auf ein kurioses Problem gestoßen: Die Anwendung beinhaltet zwei Anwendungsfenster - ein QT Quick Fenster und ein weiteres Fenster, das mittels WebEngine (Chromium) eine Webanwendung darstellt. Die Inhalte in beiden Fenstern wurden während des Debuggings und beim manuellen Starten der Binärdatei aus der Kommandozeile heraus flüssig dargestellt. Bei Animationen und Mausbewegungen konnten wir keine bemerkenswerten Ruckler feststellen. 
 
 Doch nach einem Start während des Boot-Prozesses durch ein Systemd Service-File sah die Sache schon ganz anders aus: Die Darstellung ruckelte stark und die CPU-Auslastung lag bereits bei einfachen Texteinblendungen bei ca 80 %. 
 
