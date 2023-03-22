@@ -1,4 +1,81 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/</link><description>ZERO GmbH Tech Blog</description><generator>Hugo -- gohugo.io</generator><language>de-de</language><lastBuildDate>Wed, 08 Feb 2023 10:36:44 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/index.xml" rel="self" type="application/rss+xml"/><item><title>Qt Webengine (Chromium): Too Many Open Files</title><link>https://blog.zero-iee.com/posts/qt-webengine-chromium-too-many-open-files/</link><pubDate>Wed, 08 Feb 2023 10:36:44 +0100</pubDate><guid>https://blog.zero-iee.com/posts/qt-webengine-chromium-too-many-open-files/</guid><description>&lt;p>Wie bereits in früheren Blogposts erwähnt, nutzen wir innerhalb einer Qt Quick Anwendung die Chromium-basierte Qt WebEngine, um Webinhalte darstellen zu lassen. Im Laufe der Entwicklung haben wir allerdings einen unerfreulichen Bug entdeckt, der unsere Anwendung nach einiger Zeit im laufenden Betrieb abstürzen lässt. Zunächst friert das Web-Fenster ein - etwas später folgt dann der Rest der Anwendung, bis die Anwendung schließlich beendet wird.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/</link><description>ZERO GmbH Tech Blog</description><generator>Hugo -- gohugo.io</generator><language>de-de</language><lastBuildDate>Wed, 22 Mar 2023 09:56:25 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/index.xml" rel="self" type="application/rss+xml"/><item><title>Waveshare CM4 Dual Gigabit Ethernet 5G/4G Base Board mit Radxa Rock 3 CM3 Compute Module in Betrieb nehmen</title><link>https://blog.zero-iee.com/posts/waveshare-cm4-dual-ethernet-io-board-with-radxa-rock3-cm3/</link><pubDate>Wed, 22 Mar 2023 09:56:25 +0100</pubDate><guid>https://blog.zero-iee.com/posts/waveshare-cm4-dual-ethernet-io-board-with-radxa-rock3-cm3/</guid><description>&lt;p>Da da Raspberry Pi CM4 (&amp;ldquo;Compute Module&amp;rdquo;) seit längerer Zeit wegen der anhaltenden Lieferkettenprobleme schwer und nur in geringen Stückzahlen zu beschaffen ist, haben wir von der ZERO GmbH uns nach einer Alternative umgesehen.&lt;/p>
+&lt;p>Obwohl der Name es nicht direkt vermuten lässt, bietet Radxa mit dem &amp;ldquo;&lt;a href="https://wiki.radxa.com/Rock3/CM/CM3">Rock3 CM3&lt;/a>&amp;rdquo; eine weitestgehend Pin-kompatible Alternative zum Raspberry Pi CM4 an. &lt;em>&amp;ldquo;Weitestgehend&amp;rdquo;&lt;/em>, da Radxa über einen zusätzlichen, dritten Sockel weitere Pins für Radxa-spezifische Features anbietet. Weitere Interschiede sind auf &lt;a href="https://wiki.radxa.com/Rock3/CM3/vsCM4">dieser Seite in der Tabelle&lt;/a> zu finden. Dennoch lässt sich das Radxa CM3 Modul hardwareseitig problemlos in ein bestehendes Raspberry Pi CM4 IO-Board einbauen - in unserem Fall ein &lt;a href="https://www.waveshare.com/CM4-DUAL-ETH-4G-5G-BASE.htm">Waveshare Dual Gigabit Ethernet 5G/4G Base Board&lt;/a>.&lt;/p>
+&lt;p>Auch wenn die Schnittstelle zwischen CM und Base IO Board nahezu identisch ist - der SoC auf dem Compute Module ist es keinesfalls. Während das CM4 der Raspberry Foundation auf einen Broadcom SoC (BCM2711) setzt, kommt auf dem Radxa Rock3 CM3 ein Rockchip-SoC (RK3566) zum Einsatz. Die Software kann also nicht 1:1 übertragen werden. Ein Raspbian oder Raspberry Pi OS auf dem Rockchip auszuführen, ist also nicht möglich.&lt;/p>
+&lt;p>Stattdessen bietet Radxa ein paar für den Rockchip geeignete Betriebssysteme zum Download an. Darunter auch eine Debian 11 (&amp;ldquo;Bullyeye&amp;rdquo;) Version, deren Kernel auf den Rockchip-SoC angepasst ist. Leider kommt die Linux-Distribution mit dem Uraltkernel 4.19 - das soll hier aber erst einmal nicht weiter stören.&lt;/p>
+&lt;p>Die &lt;a href="https://wiki.radxa.com/Rock3/downloads">Downloadseite&lt;/a> verweist auf GitHub Releaseseiten. Von dort aus kann die passende Debian-Version heruntergeladen werden. Da wir allerdings nicht das Radxa-eigene IO Board nutzen, sondern das Waveshare IO Board, welches für ein original CM4 konzipiert wurde, ist beim Download Vorsicht geboten: Hier muss die Version für ein &amp;ldquo;RASPCM4IO&amp;rdquo; board heruntergeladen werden. Das Image &lt;code>radxa-cm3-io-debian-bullseye-xfce4-arm64-&amp;lt;VERSION&amp;gt;-gpt.img.xz&lt;/code> ist also das passende (GitHub: &lt;a href="https://github.com/radxa-build/radxa-cm3-io/releases/tag/20221101-0118">Download&lt;/a>).&lt;/p>
+&lt;p>Nun aber zu den konkreten Schritten für das Aufspielen des Debian-Images auf den eMMC Flash des Rock3 CM3 - unter Ubuntu Linux als Host. &amp;hellip;&lt;/p>
+&lt;h2 id="rkdeveloptool-herunterladen-und-installieren" >rkdeveloptool herunterladen und installieren
+&lt;span>
+&lt;a href="#rkdeveloptool-herunterladen-und-installieren">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Da wir auf eine SD-Karte verzichten und das OS-Image direkt in den onboard-eMMC Speicher des CM3 schreiben wollen, benötigen wir zunächst das passende Entwicklerwerkzeug von Rockchip, mit dem sich derartige Schreibbvorgänge umsetzen lassen.&lt;/p>
+&lt;p>Das passende Tool heißt &lt;code>rkdeveloptool&lt;/code> und kann von GitHub heruntergeladen werden:&lt;/p>
+&lt;pre>&lt;code>git clone https://github.com/rockchip-linux/rkdeveloptool.git
+&lt;/code>&lt;/pre>
+&lt;p>Für den Kompiliervorgang müssen einige Pakete auf dem Host installiert sein:&lt;/p>
+&lt;pre>&lt;code>sudo apt-get install build-essential libudev-dev libusb-1.0-0-dev dh-autoreconf
+&lt;/code>&lt;/pre>
+&lt;p>Danach wird es aus dem Sourcecode kompiliert und installiert:&lt;/p>
+&lt;pre>&lt;code>cd rkdeveloptool
+autoreconf -i
+./configure
+make
+sudo make install
+&lt;/code>&lt;/pre>
+&lt;h2 id="os-image-in-emmc-schreiben" >OS-Image in eMMC schreiben
+&lt;span>
+&lt;a href="#os-image-in-emmc-schreiben">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Nun wird auf dem Waveshare IO Board der &amp;ldquo;Boot&amp;rdquo; Schalter auf &amp;ldquo;on&amp;rdquo; gestellt und das Board mit einem USB-C-Kabel zum Hostrechner verbunden. Ein &lt;code>lsusb&lt;/code> auf der Kommandozeile sollte offenbaren, dass ein Gerät von &amp;ldquo;Fuzhou Rockchip Electronics Company&amp;rdquo; erkannt wurde:&lt;/p>
+&lt;pre>&lt;code>Bus 003 Device 005: ID 2207:350a Fuzhou Rockchip Electronics Company
+&lt;/code>&lt;/pre>
+&lt;p>Nun laden wir uns den Rockchip Loader herunter; eine Softwarekomponente, die in den RAM des SoC geladen wird, sodass wir von dort aus das Debian-Image in den eMMC Flash schreiben können:&lt;/p>
+&lt;pre>&lt;code>wget https://dl.radxa.com/rock3/images/loader/rock-3a/rk356x_spl_loader_ddr1056_v1.10.111.bin
+&lt;/code>&lt;/pre>
+&lt;p>Der Loader wird nun über das rkdeveloptool in den RAM des SoC übertragen:&lt;/p>
+&lt;pre>&lt;code>sudo rkdeveloptool db rk356x_spl_loader_ddr1056_v1.10.111.bin
+&lt;/code>&lt;/pre>
+&lt;p>Nun kann das Debian OS Image von GitHub heruntergeladen und entpackt werden:&lt;/p>
+&lt;pre>&lt;code>wget https://github.com/radxa-build/radxa-cm3-io/releases/download/20221101-0118/radxa-cm3-io-debian-bullseye-xfce4-arm64-20221101-0302-gpt.img.xz
+xz -d radxa-cm3-io-debian-bullseye-xfce4-arm64-20221101-0302-gpt.img.xz
+&lt;/code>&lt;/pre>
+&lt;p>Abschließend wird das Debian-Image über den Loader in den eMMC Flash geschrieben:&lt;/p>
+&lt;pre>&lt;code>sudo rkdeveloptool wl 0 radxa-cm3-io-debian-bullseye-xfce4-arm64-20221101-0302-gpt.img
+&lt;/code>&lt;/pre>
+&lt;p>&amp;hellip; und der SoC neu gestartet:&lt;/p>
+&lt;pre>&lt;code>sudo rkdeveloptool rd
+&lt;/code>&lt;/pre>
+&lt;p>Nach dem Neustart sollte auf einem angesteckten HDMI Bildschirm der Bootprozess sichtbar sein. Der &amp;ldquo;Boot&amp;rdquo; Schalter auf dem IO Board kann nun wieder auf &amp;ldquo;off&amp;rdquo; gestellt werden.&lt;/p>
+&lt;p>Verbindet man das IO Board via Ethernet mit dem lokalen Netzwerk, ist das Radxa Modul über den Hostnamen &lt;code>radxa-cm3-io&lt;/code> erreichbar:&lt;/p>
+&lt;pre>&lt;code>ssh rock@radxa-cm3-io
+&lt;/code>&lt;/pre>
+&lt;p>Standard-Logindaten sind&lt;/p>
+&lt;ul>
+&lt;li>Username: &lt;code>rock&lt;/code>&lt;/li>
+&lt;li>Password: &lt;code>rock&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2 id="apt-aktualisieren" >APT aktualisieren
+&lt;span>
+&lt;a href="#apt-aktualisieren">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Direkt nach der Installation konnten wir in unserem konkreten Fall keine Paketupdates für Debian einspielen, da Uhrzeit und Datum noch nicht korrekt eingestellt waren. Das ließ sich mittels&lt;/p>
+&lt;pre>&lt;code>sudo systemctl restart ntp.service
+&lt;/code>&lt;/pre>
+&lt;p>schnell beheben.&lt;/p>
+&lt;p>Zudem wurde mindestens ein APT Repository nicht also gültig erkannt, weil ein PGP-Schlüssel nicht aktuell war:&lt;/p>
+&lt;pre>&lt;code>$ sudo apt update &amp;amp;&amp;amp; apt upgrade -y
+W: GPG error: http://apt.radxa.com/bullseye-stable bullseye InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 9B98116C9AA302C7
+&lt;/code>&lt;/pre>
+&lt;p>Auch dieses Problem ließ sich mit einem einzigen Kommando schnell beseitigen:&lt;/p>
+&lt;pre>&lt;code>wget -O - apt.radxa.com/$(lsb_release -c -s)-stable/public.key | sudo apt-key add -
+&lt;/code>&lt;/pre>
+&lt;p>Danach funktionierte auch ein &lt;code>sudo apt update&lt;/code> wieder einwandfrei.&lt;/p></description></item><item><title>Qt Webengine (Chromium): Too Many Open Files</title><link>https://blog.zero-iee.com/posts/qt-webengine-chromium-too-many-open-files/</link><pubDate>Wed, 08 Feb 2023 10:36:44 +0100</pubDate><guid>https://blog.zero-iee.com/posts/qt-webengine-chromium-too-many-open-files/</guid><description>&lt;p>Wie bereits in früheren Blogposts erwähnt, nutzen wir innerhalb einer Qt Quick Anwendung die Chromium-basierte Qt WebEngine, um Webinhalte darstellen zu lassen. Im Laufe der Entwicklung haben wir allerdings einen unerfreulichen Bug entdeckt, der unsere Anwendung nach einiger Zeit im laufenden Betrieb abstürzen lässt. Zunächst friert das Web-Fenster ein - etwas später folgt dann der Rest der Anwendung, bis die Anwendung schließlich beendet wird.&lt;/p>
 &lt;p>In diesem Beitrag stellen wir einen Workaround vor, der für uns funktioniert hat.&lt;/p>
 &lt;p>Zunächst galt es, den Ursprung für die Crashes zu ermitteln. Da die Anwendung neben dem WebEngine-Teil auch noch aus anderen, komplexeren Modulen besteht, fiel der Verdacht nicht gleich auf den WebEngine-Anteil. Viel wahrscheinlicher schien zunächst ein klassischer Memory Leak Bug zu sein. Also beispielsweise das neue Erstellen von C++ Objekten, ohne invalide oder nicht mehr benötigte Objekte hinterher zu entfernen und ggf. vorhandene Referenzen zu entfernen.&lt;/p>
 &lt;p>Die Fehlermeldung im Qt Creator Log war:&lt;/p>
