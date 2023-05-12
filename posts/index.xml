@@ -1,4 +1,102 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/posts/</link><description>ZERO GmbH Tech Blog (Posts)</description><generator>Hugo -- gohugo.io</generator><language>de-de</language><lastBuildDate>Wed, 26 Apr 2023 14:33:50 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Waveshare 4 Inch Display funktioniert nicht mit Waveshare CM4 Base IO Module B</title><link>https://blog.zero-iee.com/posts/waveshare-4-inch-display-with-cm4-base-io-b/</link><pubDate>Wed, 26 Apr 2023 14:33:50 +0200</pubDate><guid>https://blog.zero-iee.com/posts/waveshare-4-inch-display-with-cm4-base-io-b/</guid><description>&lt;p>Weil wir es auf die schmerzhafte Weise herausfinden mussten: Das &lt;a href="https://www.waveshare.com/wiki/CM4-IO-BASE-B">Waveshare IO BASE Module B&lt;/a> für das Raspberry Pi CM4 Modul funktioniert &lt;em>nicht&lt;/em> mit dem &lt;a href="https://www.waveshare.com/wiki/4inch_DSI_LCD">4&amp;quot; DSI Touch Display&lt;/a> von Waveshare - zumindest nicht, solange man eine BASE IO Board Revision &amp;lt; 4 verwendet.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/posts/</link><description>ZERO GmbH Tech Blog (Posts)</description><generator>Hugo -- gohugo.io</generator><language>de-de</language><lastBuildDate>Fri, 12 May 2023 15:17:29 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Mobilfunk-Internettraffic außerhalb eines VPNs einschränken</title><link>https://blog.zero-iee.com/posts/traffic-au%C3%9Ferhalb-vpn-verbieten/</link><pubDate>Fri, 12 May 2023 15:17:29 +0200</pubDate><guid>https://blog.zero-iee.com/posts/traffic-au%C3%9Ferhalb-vpn-verbieten/</guid><description>&lt;p>In diesem Beitrag wird erklärt, wie wir die &lt;code>iptables&lt;/code> Firewall eines IoT Gerätes konfiguriert haben, sodass eine Wartung über ein Wireguard VPN-Netz möglich ist, während andere Internetzugriffe aus oder in das Mobilfunknetz verhindert werden.&lt;/p>
+&lt;h2 id="gegebenheiten" >Gegebenheiten
+&lt;span>
+&lt;a href="#gegebenheiten">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;ul>
+&lt;li>(Optional) Ethernetverbindung ins Internet via Lokales LAN (&lt;code>eth0&lt;/code>)&lt;/li>
+&lt;li>(Optional) LTE-Verbindung ins Internet via USB LTE Modem (&lt;code>usb0&lt;/code>, IP-Adresse &lt;code>192.168.8.1&lt;/code> bzw. &lt;code>fe80::c0b0:4fff:fefe:fefe&lt;/code>)&lt;/li>
+&lt;li>Wireguard VPN-Server (&lt;code>vpn.mydomain.tld&lt;/code>)&lt;/li>
+&lt;/ul>
+&lt;h2 id="ziel" >Ziel
+&lt;span>
+&lt;a href="#ziel">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Die LTE-Verbindung soll ausschließlich für Verbindungen zum Wireguard-VPN-Server genutzt werden können. Nicht als allgemeine Internetverbindung, da der Traffic der SIM-Karte möglichst gering gehalten werden muss (Beschränkung des Datenvolumens!).&lt;/p>
+&lt;p>Für die Übertragung größerer Datenmengen aus dem Internet (OS-Updates, &amp;hellip; ) soll eine optionale Ethernetverbindung genutzt werden.&lt;/p>
+&lt;p>Daher: Beschränkung der ausgehenden Verbindungen über &lt;code>usb0&lt;/code> Interface auf Verbindungen zum VPN-Server. Weitere Ausnahmen:&lt;/p>
+&lt;ul>
+&lt;li>DNS-Anfragen (um Wireguard-Host aufzulösen)&lt;/li>
+&lt;li>Ping Requests ins Internet (zum Debugging)&lt;/li>
+&lt;/ul>
+&lt;p>Die LTE-Schnittstelle wird vom Treiber des Netzwerk-Modems automatisch weniger hoch priorisiert als die Ethernet-Schnittstelle. Ist die Ethernet-Schnittstelle verfügbar, werden Daten bevorzugt hierüber (uneingeschränkt) ausgetauscht.&lt;/p>
+&lt;h2 id="implementierung" >Implementierung
+&lt;span>
+&lt;a href="#implementierung">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>&lt;code>iptables&lt;/code> Firewallregel, um allen ausgehenden Traffic über das &lt;code>usb0&lt;/code> interface zu blockieren:&lt;/p>
+&lt;pre>&lt;code>sudo iptables -t filter -A OUTPUT -o usb0 -j REJECT
+sudo ip6tables -t filter -A OUTPUT -o usb0 -j REJECT
+&lt;/code>&lt;/pre>
+&lt;p>&lt;em>&lt;strong>Wichtig&lt;/strong>: Die Blockierregel wird mit &lt;code>-A&lt;/code> (&amp;ldquo;append&amp;rdquo;) hinzugefügt. Alle Ausnahmen zu dieser Blockierregel werden im Folgenden mit &lt;code>-I&lt;/code> (&amp;ldquo;insert&amp;rdquo;) hinzugefügt, damit sie in der Abarbeitung / Priorisierung weiter vorne stehen und triggern, bevor es zum &amp;ldquo;REJECT&amp;rdquo; kommt.&lt;/em>&lt;/p>
+&lt;p>Verbindungen zum LTE Router selbst erlauben - sonst funktioniert gar nichts mehr:&lt;/p>
+&lt;pre>&lt;code>sudo iptables -t filter -I OUTPUT -o usb0 -d 192.168.8.1 -j ACCEPT
+sudo ip6tables -t filter -I OUTPUT -o usb0 -d fe80::c0b0:4fff:fefe:fefe -j ACCEPT
+&lt;/code>&lt;/pre>
+&lt;p>Allerdings müssen Verbindungen zum VPN-Server erlaubt bleiben:&lt;/p>
+&lt;pre>&lt;code>sudo iptables -t filter -I OUTPUT -o usb0 -d vpn.mydomain.tld -p udp --dport 51821 -j ACCEPT
+&lt;/code>&lt;/pre>
+&lt;ul>
+&lt;li>&lt;em>51821 = Wireguard port&lt;/em>&lt;/li>
+&lt;li>&lt;em>Falls der VPN-Server auch via IPv6 erreichbar ist, Kommando mit &lt;code>ip6tables&lt;/code> wiederholen&lt;/em>&lt;/li>
+&lt;/ul>
+&lt;p>&amp;hellip; und auch zum DNS, denn sonst kann der Hostnamen des Wireguard VPN Servers nicht aufgelöst werden:&lt;/p>
+&lt;pre>&lt;code>sudo iptables -t filter -I OUTPUT -o usb0 -p udp --dport 53 -j ACCEPT
+sudo ip6tables -t filter -I OUTPUT -o usb0 -p udp --dport 53 -j ACCEPT
+&lt;/code>&lt;/pre>
+&lt;h2 id="ausgehende-pings-erlauben" >Ausgehende Pings erlauben
+&lt;span>
+&lt;a href="#ausgehende-pings-erlauben">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Wer zu Debugging-Zwecken ausgehende Pings (ICMP requests) ins LTE-Netz erlauben will, kann eine Ausnahme hinzufügen:&lt;/p>
+&lt;pre>&lt;code>sudo iptables -t filter -I OUTPUT -o usb0 -p icmp --icmp-type echo-request -j ACCEPT
+sudo ip6tables -t filter -I OUTPUT -o usb0 -p icmpv6 --icmpv6-type echo-request -j ACCEPT
+&lt;/code>&lt;/pre>
+&lt;h2 id="alle-via-mobilfunk-eingehenden-verbindungen-blockieren" >Alle via Mobilfunk eingehenden Verbindungen blockieren
+&lt;span>
+&lt;a href="#alle-via-mobilfunk-eingehenden-verbindungen-blockieren">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Um zu verhindern, dass der SSH Port oder ein Webserver direkt aus dem Mobilfunknetz erreicht werden können, wird der Zugriff aus dem Mobilfunknetz weiter eingeschränkt. Services auf dem Target dürfen von außen &lt;em>nur&lt;/em> über das Wireguard VPN erreichbar sein.&lt;/p>
+&lt;pre>&lt;code>sudo iptables -t filter -A INPUT -i usb0 -j REJECT
+sudo iptables -t filter -I INPUT -i usb0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+sudo ip6tables -t filter -A INPUT -i usb0 -j REJECT
+sudo ip6tables -t filter -I INPUT -i usb0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+&lt;/code>&lt;/pre>
+&lt;p>Die &lt;code>-m conntrack&lt;/code> Regeln bewirken, dass für eingehende Pakete eine Ausnahme gemacht wird, wenn sie zuvor vom Target selbst angefragt wurden. Schließlich sollen Antworten auf DNS-Anfragen oder Ping-Anfragen das Target weiterhin durchdringen können.&lt;/p>
+&lt;h2 id="ergebnis" >Ergebnis
+&lt;span>
+&lt;a href="#ergebnis">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;pre>&lt;code>pi@target:~ $ sudo iptables -L -t filter -n -v
+Chain INPUT (policy ACCEPT 640 packets, 56736 bytes)
+pkts bytes target prot opt in out source destination
+456 69620 ACCEPT all -- usb0 * 0.0.0.0/0 0.0.0.0/0 ctstate RELATED,ESTABLISHED
+0 0 REJECT all -- usb0 * 0.0.0.0/0 0.0.0.0/0 reject-with icmp-port-unreachable
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+pkts bytes target prot opt in out source destination
+Chain OUTPUT (policy ACCEPT 583 packets, 72865 bytes)
+pkts bytes target prot opt in out source destination
+3 252 ACCEPT icmp -- * usb0 0.0.0.0/0 0.0.0.0/0 icmptype 8
+29 1921 ACCEPT udp -- * usb0 0.0.0.0/0 0.0.0.0/0 udp dpt:53
+366 77068 ACCEPT udp -- * usb0 0.0.0.0/0 &amp;lt;vpnip&amp;gt; udp dpt:51821
+0 0 ACCEPT all -- * usb0 0.0.0.0/0 192.168.8.1
+69 6061 REJECT all -- * usb0 0.0.0.0/0 0.0.0.0/0 reject-with icmp-port-unreachable
+&lt;/code>&lt;/pre>
+&lt;p>&lt;em>&lt;code>&amp;lt;vpnip&amp;gt;&lt;/code> entspricht hier der aufgelösten IP Adresse zu &lt;code>vpn.mydomain.tld&lt;/code>. &lt;code>51821&lt;/code> ist der genutzte Wireguard Port.&lt;/em>&lt;/p>
+&lt;p>Nur Verbindungen, die direkt über das &lt;code>usb0&lt;/code> Interface gehen, werden von der Firewall beschränkt. Verbindungen, die innerhalb des VPN-Netzes hergestellt werden, bleiben unberührt. So kann beispielsweise unbeschränkt über das Wireguard VPN auf den SSH Port und alle weiteren Dienste auf den Targets zugegriffen werden.&lt;/p>
+&lt;p>Falls auch Zugriffe innerhalb des VPNs beschränkt werden sollen, können entsprechende &lt;code>iptables&lt;/code> Regeln mit einem &lt;code>-i &amp;lt;wireguardinterface&amp;gt;&lt;/code> Parameter versehen werden, sodass diese nur auf das Wireguard-Interface abzielen.&lt;/p></description></item><item><title>Waveshare 4 Inch Display funktioniert nicht mit Waveshare CM4 Base IO Module B</title><link>https://blog.zero-iee.com/posts/waveshare-4-inch-display-with-cm4-base-io-b/</link><pubDate>Wed, 26 Apr 2023 14:33:50 +0200</pubDate><guid>https://blog.zero-iee.com/posts/waveshare-4-inch-display-with-cm4-base-io-b/</guid><description>&lt;p>Weil wir es auf die schmerzhafte Weise herausfinden mussten: Das &lt;a href="https://www.waveshare.com/wiki/CM4-IO-BASE-B">Waveshare IO BASE Module B&lt;/a> für das Raspberry Pi CM4 Modul funktioniert &lt;em>nicht&lt;/em> mit dem &lt;a href="https://www.waveshare.com/wiki/4inch_DSI_LCD">4&amp;quot; DSI Touch Display&lt;/a> von Waveshare - zumindest nicht, solange man eine BASE IO Board Revision &amp;lt; 4 verwendet.&lt;/p>
 &lt;p>Erst ab Board Version 4 wird die höherperformante DSI1 Schnittstelle statt der DSI0 Schnittstelle des Raspberry CM4 vom IO Base Board genutzt.&lt;/p>
 &lt;p>Die Information stammt vom Waveshare-Support, den wir wegen unserer Probleme mit den Display kontaktiert haben. Die Änderung des DSI-Ports mit Version 4 des IO Base Boards ist zwar &lt;a href="https://www.waveshare.com/wiki/CM4-IO-BASE-B#Version_Introduction">dokumentiert&lt;/a>, doch leider befindet sich zum aktuellen Zeitpunkt nirgendwo ein Hinweis auf die fehlende Kompatibilität zum Display - daher sei es hier dokumentiert &amp;hellip; ;-)&lt;/p></description></item><item><title>Waveshare CM4 Dual Gigabit Ethernet 5G/4G Base Board mit Radxa Rock 3 CM3 Compute Module in Betrieb nehmen</title><link>https://blog.zero-iee.com/posts/waveshare-cm4-dual-ethernet-io-board-with-radxa-rock3-cm3/</link><pubDate>Wed, 22 Mar 2023 09:56:25 +0100</pubDate><guid>https://blog.zero-iee.com/posts/waveshare-cm4-dual-ethernet-io-board-with-radxa-rock3-cm3/</guid><description>&lt;p>Da da Raspberry Pi CM4 (&amp;ldquo;Compute Module&amp;rdquo;) seit längerer Zeit wegen der anhaltenden Lieferkettenprobleme schwer und nur in geringen Stückzahlen zu beschaffen ist, haben wir von der ZERO GmbH uns nach einer Alternative umgesehen.&lt;/p>
 &lt;p>Obwohl der Name es nicht direkt vermuten lässt, bietet Radxa mit dem &amp;ldquo;&lt;a href="https://wiki.radxa.com/Rock3/CM/CM3">Rock3 CM3&lt;/a>&amp;rdquo; eine weitestgehend Pin-kompatible Alternative zum Raspberry Pi CM4 an. &lt;em>&amp;ldquo;Weitestgehend&amp;rdquo;&lt;/em>, da Radxa über einen zusätzlichen, dritten Sockel weitere Pins für Radxa-spezifische Features anbietet. Weitere Interschiede sind auf &lt;a href="https://wiki.radxa.com/Rock3/CM3/vsCM4">dieser Seite in der Tabelle&lt;/a> zu finden. Dennoch lässt sich das Radxa CM3 Modul hardwareseitig problemlos in ein bestehendes Raspberry Pi CM4 IO-Board einbauen - in unserem Fall ein &lt;a href="https://www.waveshare.com/CM4-DUAL-ETH-4G-5G-BASE.htm">Waveshare Dual Gigabit Ethernet 5G/4G Base Board&lt;/a>.&lt;/p>
