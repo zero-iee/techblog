@@ -18,9 +18,11 @@ author:
   homepage: https://zero-iee.com
 
 params:
-  style: auto-without-switcher
+  style: dark-without-switcher
   readMore: true
   social:
+  - id: mastodon
+    url: https://techhub.social/@zeroiee
   - id: github
     name: zero-iee
   - id: linkedin
