@@ -2,7 +2,7 @@
 title: "Qt Webengine (Chromium): Too Many Open Files"
 date: 2023-02-08T10:36:44+01:00
 draft: false
-author: "Thomas Leister <thomas.leister@zero-iee.com>"
+author: "Thomas Leister"
 tags: ["qt", "webengine", "chromium"]
 ---
 

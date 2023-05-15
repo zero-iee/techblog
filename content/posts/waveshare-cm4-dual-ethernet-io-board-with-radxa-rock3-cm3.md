@@ -2,7 +2,7 @@
 title: "Waveshare CM4 Dual Gigabit Ethernet 5G/4G Base Board mit Radxa Rock 3 CM3 Compute Module in Betrieb nehmen"
 date: 2023-03-22T09:56:25+01:00
 draft: false
-author: "Thomas Leister <thomas.leister@zero-iee.com>"
+author: "Thomas Leister"
 tags: ["rockship", "radxa", "raspi", "raspberrypi", "cm4", "cm3", "waveshare", "computeModule"]
 ---
 

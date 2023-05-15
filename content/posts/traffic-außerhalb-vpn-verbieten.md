@@ -2,7 +2,7 @@
 title: "Mobilfunk-Internettraffic außerhalb eines VPNs einschränken"
 date: 2023-05-12T15:17:29+02:00
 draft: false
-author: "Thomas Leister <thomas.leister@zero-iee.com>"
+author: "Thomas Leister"
 tags: ["iptables", "networking", "wireguard", "lte", "mobilfunk"]
 ---
 

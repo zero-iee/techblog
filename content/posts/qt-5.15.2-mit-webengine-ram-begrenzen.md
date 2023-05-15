@@ -2,7 +2,7 @@
 title: "Qt 5.15.2 mit WebEngine (Chromium) bauen - RAM-Verbrauch begrenzen"
 date: 2023-01-11T14:19:06+01:00
 draft: false
-author: "Thomas Leister <thomas.leister@zero-iee.com>"
+author: "Thomas Leister"
 tags: ["qt", "buildprozess", "chromium"]
 ---
 

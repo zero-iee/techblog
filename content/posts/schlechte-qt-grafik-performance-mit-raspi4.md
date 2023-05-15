@@ -2,7 +2,7 @@
 title: "Schlechte Qt Grafikperformance mit Raspi4"
 date: 2023-02-07T08:19:47+01:00
 draft: false
-author: "Thomas Leister <thomas.leister@zero-iee.com>"
+author: "Thomas Leister"
 tags: ["qt", "raspi", "raspberrypi", ""]
 ---
 

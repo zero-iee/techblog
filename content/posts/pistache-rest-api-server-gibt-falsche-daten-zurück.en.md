@@ -2,7 +2,7 @@
 title: "Pistache REST API Server Returns Incorrect Responses to Requests"
 date: 2023-01-27T12:17:09+01:00
 draft: false
-author: "Thomas Leister <thomas.leister@zero-iee.com>"
+author: "Thomas Leister"
 tags: ["cpp", "pistache", "rest", "api", "javascript", "web"]
 ---
 

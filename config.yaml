@@ -13,6 +13,10 @@ languages:
     languageName: English
     weight: 2
 
+author:
+  name: "ZERO GmbH Team"
+  homepage: https://zero-iee.com
+
 params:
   style: auto-without-switcher
   readMore: true
@@ -21,3 +25,4 @@ params:
     name: zero-iee
   - id: linkedin
     url: https://de.linkedin.com/company/zero-iee
+  author: "ZERO GmbH Team"

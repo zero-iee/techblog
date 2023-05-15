@@ -2,7 +2,7 @@
 title: "Qt 5.15.2 with WebEngine (Chromium) - Limit RAM usage to avoid crashes"
 date: 2023-01-11T14:19:06+01:00
 draft: false
-author: "Thomas Leister <thomas.leister@zero-iee.com>"
+author: "Thomas Leister"
 tags: ["qt", "buildprocess", "webengine", "chromium"]
 ---
 

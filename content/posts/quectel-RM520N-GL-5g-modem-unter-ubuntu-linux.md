@@ -2,7 +2,7 @@
 title: "Quectel RM520N-GL 5G Mobilfunkmodem unter Ubuntu Linux in Betrieb nehmen"
 date: 2023-01-02T14:20:04+01:00
 draft: false
-author: "Thomas Leister <thomas.leister@zero-iee.com>"
+author: "Thomas Leister"
 tags: ["linux", "ubuntu", "mobilfunk", "5g", "quectel"]
 ---
 

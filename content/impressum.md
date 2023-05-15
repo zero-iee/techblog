@@ -2,7 +2,7 @@
 title: "Impressum"
 date: 2022-12-20T06:08:14-08:00
 draft: false
-author: "Thomas Leister <thomas.leister@zero-iee.com>"
+author: "Thomas Leister"
 tags: []
 disable_feed: true
 ---

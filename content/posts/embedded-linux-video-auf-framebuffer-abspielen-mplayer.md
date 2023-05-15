@@ -2,7 +2,7 @@
 title: "Embedded Linux: Video in Endlosschleife auf Framebuffer abspielen mit mplayer"
 date: 2022-12-21T02:38:26-08:00
 draft: false
-author: "Thomas Leister <thomas.leister@zero-iee.com>"
+author: "Thomas Leister"
 tags: ["linux", "embedded", "video", "mplayer", "ubuntu"]
 ---
 

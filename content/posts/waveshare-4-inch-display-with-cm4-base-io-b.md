@@ -2,7 +2,7 @@
 title: "Waveshare 4 Inch Display funktioniert nicht mit Waveshare CM4 Base IO Module B"
 date: 2023-04-26T14:33:50+02:00
 draft: false
-author: "Thomas Leister <thomas.leister@zero-iee.com>"
+author: "Thomas Leister"
 tags: ["waveshare", "cm", "raspberrypi", "display"]
 ---
 
