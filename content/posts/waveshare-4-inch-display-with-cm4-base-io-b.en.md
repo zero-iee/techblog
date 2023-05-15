@@ -2,7 +2,7 @@
 title: "Waveshare 4 Inch display does not work with IO BASE MODULE B"
 date: 2023-04-26T14:47:13+02:00
 draft: false
-author: "Thomas Leister<thomas.leister@zero-iee.com>"
+author: "Thomas Leister"
 tags: ["waveshare", "raspberrypi", "cm4", "display"]
 ---
 
