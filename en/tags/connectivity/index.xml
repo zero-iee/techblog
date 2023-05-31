@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>connectivity on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/en/tags/connectivity/</link><description>ZERO GmbH Tech Blog (connectivity)</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Wed, 31 May 2023 12:44:58 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/en/tags/connectivity/index.xml" rel="self" type="application/rss+xml"/><item><title>Using Quectel RM520M and Telit FM990A28 5G Modem with Raspberry Pi OS</title><link>https://blog.zero-iee.com/en/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</link><pubDate>Wed, 31 May 2023 12:44:58 +0200</pubDate><guid>https://blog.zero-iee.com/en/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</guid><description>&lt;p>On our odyssey in search of a 5G cellular modem, we have tried several modems from different manufacturers. Unfortunately, the commissioning was not always successful. Sometimes the driver support in the Linux kernel was completely missing - sometimes the control via NetworkManager / ModemManager was buggy or not possible at all.&lt;/p>
+&lt;p>Easy commissioning and stable operation are important to us. Since we do not want to use the modems on only a few devices, a manual adaptation of the Linux kernel is usually out of the question for us. The effort involved is too great and the consequences for the further life cycle of a product are too unclear. Therefore, the operating system - often a Raspberry Pi OS - should be used in its factory state and without major adjustments, if possible.&lt;/p>
+&lt;p>&lt;strong>Two modems have emerged for us that work &amp;ldquo;out of the box&amp;rdquo; in combination with the current &lt;a href="https://www.raspberrypi.com/software/operating-systems/">Raspberry Pi OS&lt;/a> on Debian 11 &amp;ldquo;Bullseye&amp;rdquo; basis (kernel 6.1):&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>&lt;a href="https://www.quectel.com/product/5g-rm520n-gl">Quectel RM520N&lt;/a>&lt;/strong>&lt;/li>
+&lt;li>&lt;strong>&lt;a href="https://www.telit.com/devices/fn990axx/">Telit FM990A28&lt;/a>&lt;/strong>&lt;/li>
+&lt;/ul>
+&lt;p>both 5G modems support not only the currently widespread &amp;ldquo;5G New Radio&amp;rdquo; with LTE Control Plane (NSA), but also 5G NR Standalone (SA), so that with a corresponding expansion stage of the 5G mobile network can also benefit from extremely lower latencies.&lt;/p>
+&lt;h2 id="commissioning" >Commissioning
+&lt;span>
+&lt;a href="#commissioning">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>The commissioning of our Telit module went as follows: &lt;em>(similar for Quectel!)&lt;/em>&lt;/p>
+&lt;p>Check the visibility of the module in the USB subsystem:&lt;/p>
+&lt;pre>&lt;code>$ lsusb
+&lt;/code>&lt;/pre>
+&lt;p>A Telit Device should be visible here:&lt;/p>
+&lt;pre>&lt;code>[...]
+Bus 002 Device 003: ID 1bc7:1070 Telit Wireless Solutions FN990
+[...]
+&lt;/code>&lt;/pre>
+&lt;p>The ModemManager should also recognize the module:&lt;/p>
+&lt;pre>&lt;code>tom@raspberry:~ $ mmcli -L
+/org/freedesktop/ModemManager1/Modem/0 [Telit] FN990A28
+&lt;/code>&lt;/pre>
+&lt;p>Using&lt;/p>
+&lt;pre>&lt;code>mmcli -m 0
+&lt;/code>&lt;/pre>
+&lt;p>some details about the modem can be output - among others, if there is a connection to the mobile network or if a SIM card is assigned.&lt;/p>
+&lt;p>In our first attempt, a red &lt;code>sim-missing&lt;/code> was displayed in the &amp;ldquo;Status&amp;rdquo; section, although a SIM card was inserted in the slot of the Waveshare Base IO module. Also attempts with other SIM cards were of no use - no card was detected in the system.&lt;/p>
+&lt;h3 id="fix-sim-missing-problem" >Fix &amp;ldquo;SIM Missing&amp;rdquo; problem
+&lt;span>
+&lt;a href="#fix-sim-missing-problem">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h3>&lt;p>A look into the &lt;a href="https://www.waveshare.com/w/upload/4/46/CM4-DUAL-ETH-4G_5G-BASE_SchDoc.pdf">Schematics of the Waveshare Board&lt;/a> revealed that the signal line (&amp;ldquo;CD&amp;rdquo; - &amp;ldquo;Card detect&amp;rdquo;) for the physical detection of a SIM card in the slot is not continued to the M.2 slot, so that the cellular module &lt;em>cannot&lt;/em> detect a corresponding signal. No wonder, then, that we were permanently shown a &amp;ldquo;&lt;strong>sim-missing&lt;/strong>&amp;rdquo;.&lt;/p>
+&lt;figure>&lt;img src="images/waveshare-schematics.png"/>&lt;figcaption>
+&lt;h4>Screenshot of the Waveshare Dual Ethernet IoT Base Board&lt;/h4>
+&lt;/figcaption>
+&lt;/figure>
+&lt;p>The problem can be fixed by configuring the modem to accept a SIM card that is always inserted and to stop performing HotSwap queries. The configuration is done via AT commands within a terminal session with the modem itself:&lt;/p>
+&lt;pre>&lt;code>sudo apt install minicom
+sudo minicom -D /dev/ttyUSB2
+&lt;/code>&lt;/pre>
+&lt;p>Issue AT commands - should be acknowledged with &amp;ldquo;OK&amp;rdquo;.&lt;/p>
+&lt;pre>&lt;code>AT#HSEN=0,0
+AT#HSEN=0,1
+&lt;/code>&lt;/pre>
+&lt;p>&lt;em>(more precisely, this disables HotSwap for both potential SIM slots supported by the modem)&lt;/em>.&lt;/p>
+&lt;p>The Minicom session can be terminated with CTRL-A followed by &amp;ldquo;X&amp;rdquo;.&lt;/p>
+&lt;p>For the change to be applied, the Raspi including the modem was rebooted / the power supply was interrupted.&lt;/p>
+&lt;p>After a reboot the SIM card was finally recognized in the ModemManager - at the end of the output of &lt;code>mmcli -m 0&lt;/code> a &amp;ldquo;SIM&amp;rdquo; line with the D-Bus path to the SIM device was displayed:&lt;/p>
+&lt;pre>&lt;code>SIM | dbus path: /org/freedesktop/ModemManager1/SIM/0
+&lt;/code>&lt;/pre>
+&lt;p>&lt;strong>The just mentioned adjustment at the Telit modem is not necessary at the Quectel modem as long as the SIM slot attached to the evaluation kit is used instead of the slot at the Waveshare board!&lt;/strong>&lt;/p>
+&lt;p>The next step is to activate the respective modem:&lt;/p>
+&lt;pre>&lt;code>mmcli -m 0 --enable
+&lt;/code>&lt;/pre>
+&lt;h3 id="setting-up-a-connection-using-networkmanager" >Setting up a connection using NetworkManager
+&lt;span>
+&lt;a href="#setting-up-a-connection-using-networkmanager">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h3>&lt;p>A new cellular connection is now set up using NetworkManager. To do this, we create a new &amp;ldquo;Connection&amp;rdquo; in the NetworkManager. In the background, this communicates with the ModemManager in order to pass on APN details to it.&lt;/p>
+&lt;p>For our telecom card, the following APN information is to be used:&lt;/p>
+&lt;ul>
+&lt;li>APN: internet.telekom&lt;/li>
+&lt;li>IP-Type: ipv4&lt;/li>
+&lt;li>Username: telekom&lt;/li>
+&lt;li>Password: tm&lt;/li>
+&lt;/ul>
+&lt;p>The APN information of each provider can be looked up quickly on the Internet.&lt;/p>
+&lt;p>Unfortunately, we had no luck with the newer IPv6-enabled APN of Telekom &lt;code>internet.v6.telekom&lt;/code> (and &amp;ldquo;ipv4v6&amp;rdquo;) - we could not establish a connection. Problems in the IPv6 stack of the modem drivers are already known to us. Possibly they come to bear here as well. Therefore we are content with pure IPv4 support for the time being.&lt;/p>
+&lt;p>Before the connection can be established, it must be ensured that the NetworkManager is running:&lt;/p>
+&lt;pre>&lt;code>systemctl enable --now NetworkManager
+&lt;/code>&lt;/pre>
+&lt;p>On a stock Raspberry Pi OS image this is not the case. A reboot after the systemctl command can&amp;rsquo;t hurt. In our case, the interaction between the two managers only worked after a reboot.&lt;/p>
+&lt;p>Finally, this command creates a new GSM connection in the NetworkManager:&lt;/p>
+&lt;pre>&lt;code>mmcli c add type gsm ifname cdc-wdm0 con-name telekom apn internet.telekom connection.autoconnect yes
+&lt;/code>&lt;/pre>
+&lt;p>In the case of Telekom, the APN &amp;ldquo;internet.telekom&amp;rdquo; including the other parameters is already stored in the SIM profile, so that only the name of the matching APN profile needs to be specified. User name and password can usually be omitted.&lt;/p>
+&lt;p>If this does not work, other parameters can be specified as an alternative, e.g.&lt;/p>
+&lt;pre>&lt;code>mmcli c add type gsm ifname cdc-wdm0 con-name telekom apn internet.telekom gsm.username telekom gsm.password tm gsm.pin 1234 connection.autoconnect yes
+&lt;/code>&lt;/pre>
+&lt;p>Especially the specification of a &lt;code>gsm.pin&lt;/code> is important if the SIM card is protected with a PIN. Our SIM is not protected with a PIN, so the specification is omitted.&lt;/p>
+&lt;p>A &lt;code>nmcli c&lt;/code> should now show that a new connection &amp;ldquo;telekom&amp;rdquo; has been created. If the connection is marked green, the login to the network has worked:&lt;/p>
+&lt;figure>&lt;img src="images/networkmanager-ok.png"/>&lt;figcaption>
+&lt;h4>nmcli c&lt;/h4>
+&lt;/figcaption>
+&lt;/figure>
+&lt;p>The ModemManager should also look similar to this after a short while, showing a &amp;ldquo;connected&amp;rdquo; in the status: &lt;em>(&lt;code>mmcli -m 0&lt;/code>)&lt;/em>&lt;/p>
+&lt;figure>&lt;img src="images/modemmanager-ok.png"/>&lt;figcaption>
+&lt;h4>mmcli -m 0&lt;/h4>
+&lt;/figcaption>
+&lt;/figure>
+&lt;h3 id="check-function" >Check function
+&lt;span>
+&lt;a href="#check-function">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h3>&lt;p>Whether the cellular connection is actually working can be quickly and easily checked by pinging the cellular device:&lt;/p>
+&lt;pre>&lt;code>ping -I wwan0 1.1.1.1
+&lt;/code>&lt;/pre>
+&lt;p>Latency typically hovers around &amp;gt;= 25 ms on a 5G NSA network, but can vary greatly. We have observed latencies as high as 600 ms - depending on reception and network load.&lt;/p>
+&lt;p>When rebooting the Raspberry Pi, the cellular connection is automatically reestablished.&lt;/p>
+&lt;p>By the way: An &lt;code>ip route&lt;/code> reveals that NetworkManager has created a default route for the 5G modem. However, since this has a metric of 700, the cellular modem is only used if a destination cannot be reached over a possible Ethernet connection. So an &lt;code>apt update&lt;/code> and everything else should normally run over an available Ethernet connection. If this is not available, the cellular connection serves as a fallback (hence the &lt;code>-I wwan0&lt;/code> parameter in the &lt;code>ping&lt;/code> command - this forces a connection via cellular).&lt;/p></description></item></channel></rss>

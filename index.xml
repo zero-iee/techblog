@@ -1,4 +1,130 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/</link><description>ZERO GmbH Tech Blog</description><generator>Hugo -- gohugo.io</generator><language>de-de</language><lastBuildDate>Fri, 12 May 2023 15:17:29 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/index.xml" rel="self" type="application/rss+xml"/><item><title>Mobilfunk-Internettraffic außerhalb eines VPNs einschränken</title><link>https://blog.zero-iee.com/posts/traffic-au%C3%9Ferhalb-vpn-verbieten/</link><pubDate>Fri, 12 May 2023 15:17:29 +0200</pubDate><guid>https://blog.zero-iee.com/posts/traffic-au%C3%9Ferhalb-vpn-verbieten/</guid><description>&lt;p>In diesem Beitrag wird erklärt, wie wir die &lt;code>iptables&lt;/code> Firewall eines IoT Gerätes konfiguriert haben, sodass eine Wartung über ein Wireguard VPN-Netz möglich ist, während andere Internetzugriffe aus oder in das Mobilfunknetz verhindert werden.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/</link><description>ZERO GmbH Tech Blog</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Wed, 31 May 2023 12:44:58 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/index.xml" rel="self" type="application/rss+xml"/><item><title>Quectel RM520M und Telit FM990A28 5G Modem mit Raspberry Pi OS nutzen</title><link>https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</link><pubDate>Wed, 31 May 2023 12:44:58 +0200</pubDate><guid>https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</guid><description>&lt;p>Auf unserer Odyssee auf der Suche nach einem 5G Mobilfunkmodem haben wir mittlerweile einige Modems verschiedener Hersteller ausprobiert. Leider war die Inbetriebnahme nicht immer erfolgreich. Mal fehlte der Treibersupport im Linux-Kernel gänzlich - mal war die Ansteuerung via NetworkManager / ModemManager fehlerbehaftet oder überhaupt nicht möglich.&lt;/p>
+&lt;p>Uns ist eine einfache Inbetriebnahme und ein stabiler Betrieb wichtig. Da wir die Modems nicht nur auf einigen wenigen Geräten einsetzen wollen, kommt für uns eine manuelle Anpassung des Linux-Kernels in der Regel nicht infrage. Zu groß ist der damit verbundene Aufwand und zu unübersichtlich sind die Folgen, die sich daraus für den weiteren Lebenszyklus eines Produkts ergeben. Daher soll das Betriebssystem - oftmals ein Raspberry Pi OS - möglichst im Werkszustand und ohne große Anpassungen genutzt werden.&lt;/p>
+&lt;p>&lt;strong>Mittlerweile haben sich für uns zwei Modems herauskristallisiert, die in Kombination mit dem aktuellen &lt;a href="https://www.raspberrypi.com/software/operating-systems/">Raspberry Pi OS&lt;/a> auf Debian 11 &amp;ldquo;Bullseye&amp;rdquo; Basis (Kernel 6.1) &amp;ldquo;out of the box&amp;rdquo; funktionieren:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>&lt;a href="https://www.quectel.com/product/5g-rm520n-gl">Quectel RM520N&lt;/a>&lt;/strong>&lt;/li>
+&lt;li>&lt;strong>&lt;a href="https://www.telit.com/devices/fn990axx/">Telit FM990A28&lt;/a>&lt;/strong>&lt;/li>
+&lt;/ul>
+&lt;p>beide 5G Modems unterstützen nicht nur das aktuell weit verbreitete &amp;ldquo;5G New Radio&amp;rdquo; mit LTE Control Plane (NSA), sondern auch 5G NR Standalone (SA), sodass bei einer entsprechenden Ausbaustufe des 5G Mobilfunknetzes auch von extrem niedrigeren Latenzen profitiert werden kann.&lt;/p>
+&lt;h2 id="hardware-setup" >Hardware Setup
+&lt;span>
+&lt;a href="#hardware-setup">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Unser Hardware-Setup für die Evaluierung beider Module sieht wie folgt aus:&lt;/p>
+&lt;ul>
+&lt;li>Raspberry Pi CM4&lt;/li>
+&lt;li>&lt;a href="https://www.waveshare.com/wiki/CM4-DUAL-ETH-4G/5G-BASE">Waveshare Dual Ethernet IoT Base Board&lt;/a> (mit M.2 Slot)&lt;/li>
+&lt;li>Telit FM990A28 M.2 Modul &lt;em>oder&lt;/em>&lt;/li>
+&lt;li>Quectel RM520N Evaluation Kit (M.2 Modemmodul an einem Evaluation Board - verbunden mit Base IO Board via USB 3.1)&lt;/li>
+&lt;li>IoT SIM-Karte der Deutschen Telekom&lt;/li>
+&lt;/ul>
+&lt;p>Das Quectel M.2 Modul wurde zusammen mit einem Evaulation Kit - also einer Trägerplatine inkl. Antennen und Kühlkörper bestellt, sodass es auch über USB-A 3.1 (statt M.2) an ein Raspi oder einen beliebigen anderen Computer angeschlossen werden kann. Grundsätzlich ließe sich das Modul zwar aus dem EK herauslösen und direkt via M.2 am Waveshare Base IO Board anstecken, doch der werksseitig angebrachte Kühlkörper verhinderte aufgrund seiner Dimensionen den Einbau. Wir entschieden uns also für die USB-Verbindung. Da sowohl der Telit Modul als auch das Quectel Modul einen M.2 B-Key Anschluss besitzen und sämtliche Subsysteme via USB kommunizieren, erscheinen beide Module als USB Composite Geräte - egal, ob sie nun direkt via USB oder M.2 angeschlossen sind.&lt;/p>
+&lt;p>Das Telit Modul wurde direkt am Waveshare Base IO Board via M.2 verbunden.&lt;/p>
+&lt;h2 id="inbetriebnahme" >Inbetriebnahme
+&lt;span>
+&lt;a href="#inbetriebnahme">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Die Inbetriebnahme unseres Telit-Moduls lief wie folgt ab: &lt;em>(ähnlich für Quectel!)&lt;/em>&lt;/p>
+&lt;p>Überprüfen der Sichtbarkeit des Moduls im USB Subsystem:&lt;/p>
+&lt;pre>&lt;code>$ lsusb
+&lt;/code>&lt;/pre>
+&lt;p>Hier sollte ein Telit Device sichtbar sein:&lt;/p>
+&lt;pre>&lt;code>[...]
+Bus 002 Device 003: ID 1bc7:1070 Telit Wireless Solutions FN990
+[...]
+&lt;/code>&lt;/pre>
+&lt;p>Auch der ModemManager sollte das Modul erkennen:&lt;/p>
+&lt;pre>&lt;code>tom@raspberry:~ $ mmcli -L
+/org/freedesktop/ModemManager1/Modem/0 [Telit] FN990A28
+&lt;/code>&lt;/pre>
+&lt;p>Mittels&lt;/p>
+&lt;pre>&lt;code>mmcli -m 0
+&lt;/code>&lt;/pre>
+&lt;p>Können einige Details zum Modem ausgegeben werden - unter anderem, ob eine Verbindung zum Mobilfunknetz besteht, oder eine SIM-Karte zugeordnet ist.&lt;/p>
+&lt;p>Bei unserem ersten Versuch wurde im &amp;ldquo;Status&amp;rdquo; Abschnitt ein rotes &lt;code>sim-missing&lt;/code> angezeigt, obwohl eine SIM-Karte in den Slot des Waveshare Base IO Moduls eingelegt war. Auch Versuche mit anderen SIM-Karten nutzten nichts - im System wurde keine Karte erkannt.&lt;/p>
+&lt;h3 id="sim-missing-problem-beheben" >&amp;ldquo;SIM Missing&amp;rdquo; Problem beheben
+&lt;span>
+&lt;a href="#sim-missing-problem-beheben">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h3>&lt;p>Ein Blick in die &lt;a href="https://www.waveshare.com/w/upload/4/46/CM4-DUAL-ETH-4G_5G-BASE_SchDoc.pdf">Schematics des Waveshare Boards&lt;/a> offenbarte, dass die Signalleitung (&amp;ldquo;CD&amp;rdquo; - &amp;ldquo;Card detect&amp;rdquo;) für die physische Erkennung einer SIM-Karte im Slot nicht zum M.2 Slot weitergeführt wird, sodass das Mobilfunkmodul kein entsprechendes Signal erkennen &lt;em>kann&lt;/em>. Kein Wunder also, dass uns permanent ein &amp;ldquo;&lt;strong>sim-missing&lt;/strong>&amp;rdquo; angezeigt wurde.&lt;/p>
+&lt;figure>&lt;img src="images/waveshare-schematics.png"/>&lt;figcaption>
+&lt;h4>Screenshot des Waveshare Dual Ethernet IoT Base Boards&lt;/h4>
+&lt;/figcaption>
+&lt;/figure>
+&lt;p>Das Problem lässt sich beheben, indem das Modem so konfiguriert wird, dass es eine immer eingelegte SIM-Karte annimmt und keine HotSwap-Abfragen mehr durchführt. Die Konfiguration geschieht über AT-Kommandos innerhalb einer Terminalsession mit dem Modem selbst:&lt;/p>
+&lt;pre>&lt;code>sudo apt install minicom
+sudo minicom -D /dev/ttyUSB2
+&lt;/code>&lt;/pre>
+&lt;p>AT-Kommandos absetzen - sollten mit &amp;ldquo;OK&amp;rdquo; quittiert werden.&lt;/p>
+&lt;pre>&lt;code>AT#HSEN=0,0
+AT#HSEN=0,1
+&lt;/code>&lt;/pre>
+&lt;p>&lt;em>(genauer genommen wird hier HotSwap für beide potentiellen SIM-Steckplätze, die das Modem unterstützt, deaktiviert.)&lt;/em>&lt;/p>
+&lt;p>Die Minicom Session kann mit CTRL-A gefolgt von &amp;ldquo;X&amp;rdquo; beendet werden.&lt;/p>
+&lt;p>Damit die Änderung angewendet wird, wurde das Raspi samt Modem neu gestartet / die Stromversorgung unterbrochen.&lt;/p>
+&lt;p>Nach einem Neustart wurde die SIM-Karte im ModemManager schließlich erkannt - am Ende der Ausgabe von &lt;code>mmcli -m 0&lt;/code> wurde eine &amp;ldquo;SIM&amp;rdquo; Zeile mit dem D-Bus Pfad zum SIM-Device eingeblendet:&lt;/p>
+&lt;pre>&lt;code>SIM | dbus path: /org/freedesktop/ModemManager1/SIM/0
+&lt;/code>&lt;/pre>
+&lt;p>&lt;strong>Die soeben erwähnte Anpassung am Telit Modem ist am Quectel-Modem nicht notwendig, solange der am Evaluation Kit angebrachte SIM-Slot statt des Slots am Waveshare-Board verwendet wird!&lt;/strong>&lt;/p>
+&lt;p>Im nächsten Schritt wird das jeweiligen Modem aktiviert:&lt;/p>
+&lt;pre>&lt;code>mmcli -m 0 --enable
+&lt;/code>&lt;/pre>
+&lt;h3 id="eine-verbindung-mittels-networkmanager-einrichten" >Eine Verbindung mittels NetworkManager einrichten
+&lt;span>
+&lt;a href="#eine-verbindung-mittels-networkmanager-einrichten">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h3>&lt;p>Mittels NetworkManager wird nun eine neue Mobilfunkverbindung eingerichtet. Dazu legen wir im NetworkManager eine neue &amp;ldquo;Connection&amp;rdquo; an. Im Hintergrund kommuniziert dieser mit dem ModemManager, um APN-Details an ihn weiterzugeben.&lt;/p>
+&lt;p>Für unsere Telekom-Karte sind folgende APN-Informationen zu nutzen:&lt;/p>
+&lt;ul>
+&lt;li>APN: internet.telekom&lt;/li>
+&lt;li>IP-Type: ipv4&lt;/li>
+&lt;li>Username: telekom&lt;/li>
+&lt;li>Password: tm&lt;/li>
+&lt;/ul>
+&lt;p>Die APN-Informationen eines jeden Providers lassen sich schnell im Internet nachschlagen.&lt;/p>
+&lt;p>Mit dem neueren IPv6-fähigen APN der Telekom &lt;code>internet.v6.telekom&lt;/code> (und &amp;ldquo;ipv4v6&amp;rdquo;) hatten wir leider kein Glück - wir konnten keine Vebindung herstellen. Probleme im IPv6-Stack der Modemtreiber sind uns bereits bekannt. Evtl. kommen sie auch hier zum tragen. Daher begnügen wir uns vorerst mit reinem IPv4 Support.&lt;/p>
+&lt;p>Bevor die Verbindung angelegt werden kann, muss sichergestellt sein, dass der NetworkManager läuft:&lt;/p>
+&lt;pre>&lt;code>systemctl enable --now NetworkManager
+&lt;/code>&lt;/pre>
+&lt;p>Auf einem Stock Raspberry Pi OS Image ist dies nicht der Fall. Ein Reboot nach dem systemctl Kommando kann nicht schaden. In unserem Fall funktionierte das Zusammenspiel zwischen den beiden Managern erst nach einem Reboot.&lt;/p>
+&lt;p>Schließlich wird mit diesem Kommando eine neue GSM Verbindung im NetworkManager angelegt:&lt;/p>
+&lt;pre>&lt;code>mmcli c add type gsm ifname cdc-wdm0 con-name telekom apn internet.telekom connection.autoconnect yes
+&lt;/code>&lt;/pre>
+&lt;p>Im Falle der Telekom ist der APN &amp;ldquo;internet.telekom&amp;rdquo; inkl. der übrigen Parameter bereits im SIM-Profil hinterlegt, sodass nur noch der Name des passenden APN-Profils angegeben werden muss. Auf Benutzername und Passwort kann idR verzichtet werden.&lt;/p>
+&lt;p>Sollte das nicht funktionieren, können alternativ auch weitere Parameter mitgegeben werden, wie z.B.&lt;/p>
+&lt;pre>&lt;code>mmcli c add type gsm ifname cdc-wdm0 con-name telekom apn internet.telekom gsm.username telekom gsm.password tm gsm.pin 1234 connection.autoconnect yes
+&lt;/code>&lt;/pre>
+&lt;p>Insbes. die Angabe einer &lt;code>gsm.pin&lt;/code> ist wichtig, falls die SIM-Karte mit einer PIN geschützt ist. Unsere SIM ist nicht mit einer PIN geschützt, daher entfällt die Angabe.&lt;/p>
+&lt;p>Ein &lt;code>nmcli c&lt;/code> sollte nun zeigen, dass eine neue Verbindung &amp;ldquo;telekom&amp;rdquo; angelegt wurde. Ist die Verbindung grün markiert, hat die Anmeldung im Netzwerk funktioniert:&lt;/p>
+&lt;figure>&lt;img src="images/networkmanager-ok.png"/>&lt;figcaption>
+&lt;h4>nmcli c&lt;/h4>
+&lt;/figcaption>
+&lt;/figure>
+&lt;p>Auch der ModemManager sollte nach einer kurzen Weile ähnlich wie hier aussehen und ein &amp;ldquo;connected&amp;rdquo; im Status zeigen: &lt;em>(&lt;code>mmcli -m 0&lt;/code>)&lt;/em>&lt;/p>
+&lt;figure>&lt;img src="images/modemmanager-ok.png"/>&lt;figcaption>
+&lt;h4>mmcli -m 0&lt;/h4>
+&lt;/figcaption>
+&lt;/figure>
+&lt;h3 id="funktion-prüfen" >Funktion prüfen
+&lt;span>
+&lt;a href="#funktion-pr%c3%bcfen">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h3>&lt;p>Ob die Mobilfunkverbindung tatsächlich funktioniert, lässt sich schnell und einfach über einen Ping auf dem Mobilfunk-Device prüfen:&lt;/p>
+&lt;pre>&lt;code>ping -I wwan0 1.1.1.1
+&lt;/code>&lt;/pre>
+&lt;p>Die Latenz bewegt sich bei einem 5G NSA Netz üblicherweise bei &amp;gt;= 25 ms, kann aber stark schwanken. Wir haben Latenzen von bis zu 600 ms beobachtet - abhängig von Empfang und Auslastung des Netzwerks.&lt;/p>
+&lt;p>Bei einem Neustart des Raspberry Pis wird die Mobilfunkverbindung automatisch neu aufgenommen.&lt;/p>
+&lt;p>Übrigens: Ein &lt;code>ip route&lt;/code> offenbart, dass NetworkManager eine Defaultroute für das 5G Modem angelegt hat. Da diese aber mit einer Metrik von 700 versehen ist, wird auf das Mobilfunkmodem nur zurückgegegriffen, falls ein Ziel über eine möglicherwiese vorhandene Ethernetverbindung nicht erreichbar ist. Ein &lt;code>apt update&lt;/code> und alles andere sollte also normalerweise über eine verfügbare Ethernetverbindung laufen. Ist diese nicht verfügbar, dient die Mobilfunkverbindung als Fallback (daher der &lt;code>-I wwan0&lt;/code> Parameter im &lt;code>ping&lt;/code> Kommando - hiermit wird eine Verbindung via Mobilfunk erzwungen).&lt;/p></description></item><item><title>Mobilfunk-Internettraffic außerhalb eines VPNs einschränken</title><link>https://blog.zero-iee.com/posts/traffic-au%C3%9Ferhalb-vpn-verbieten/</link><pubDate>Fri, 12 May 2023 15:17:29 +0200</pubDate><guid>https://blog.zero-iee.com/posts/traffic-au%C3%9Ferhalb-vpn-verbieten/</guid><description>&lt;p>In diesem Beitrag wird erklärt, wie wir die &lt;code>iptables&lt;/code> Firewall eines IoT Gerätes konfiguriert haben, sodass eine Wartung über ein Wireguard VPN-Netz möglich ist, während andere Internetzugriffe aus oder in das Mobilfunknetz verhindert werden.&lt;/p>
 &lt;h2 id="gegebenheiten" >Gegebenheiten
 &lt;span>
 &lt;a href="#gegebenheiten">
