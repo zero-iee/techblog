@@ -17,11 +17,13 @@
 &lt;li>Raspberry Pi CM4&lt;/li>
 &lt;li>&lt;a href="https://www.waveshare.com/wiki/CM4-DUAL-ETH-4G/5G-BASE">Waveshare Dual Ethernet IoT Base Board&lt;/a> (mit M.2 Slot)&lt;/li>
 &lt;li>Telit FM990A28 M.2 Modul &lt;em>oder&lt;/em>&lt;/li>
-&lt;li>Quectel RM520N Evaluation Kit (M.2 Modemmodul an einem Evaluation Board - verbunden mit Base IO Board via USB 3.1)&lt;/li>
+&lt;li>Quectel RM520N&lt;/li>
 &lt;li>IoT SIM-Karte der Deutschen Telekom&lt;/li>
 &lt;/ul>
-&lt;p>Das Quectel M.2 Modul wurde zusammen mit einem Evaulation Kit - also einer Trägerplatine inkl. Antennen und Kühlkörper bestellt, sodass es auch über USB-A 3.1 (statt M.2) an ein Raspi oder einen beliebigen anderen Computer angeschlossen werden kann. Grundsätzlich ließe sich das Modul zwar aus dem EK herauslösen und direkt via M.2 am Waveshare Base IO Board anstecken, doch der werksseitig angebrachte Kühlkörper verhinderte aufgrund seiner Dimensionen den Einbau. Wir entschieden uns also für die USB-Verbindung. Da sowohl der Telit Modul als auch das Quectel Modul einen M.2 B-Key Anschluss besitzen und sämtliche Subsysteme via USB kommunizieren, erscheinen beide Module als USB Composite Geräte - egal, ob sie nun direkt via USB oder M.2 angeschlossen sind.&lt;/p>
-&lt;p>Das Telit Modul wurde direkt am Waveshare Base IO Board via M.2 verbunden.&lt;/p>
+&lt;figure>&lt;img src="images/waveshare-board.jpg"/>&lt;figcaption>
+&lt;h4>Waveshare Board mit Quectel 5G Modem&lt;/h4>
+&lt;/figcaption>
+&lt;/figure>
 &lt;h2 id="inbetriebnahme" >Inbetriebnahme
 &lt;span>
 &lt;a href="#inbetriebnahme">
@@ -52,7 +54,8 @@ Bus 002 Device 003: ID 1bc7:1070 Telit Wireless Solutions FN990
 &lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
 &lt;/a>
 &lt;/span>
-&lt;/h3>&lt;p>Ein Blick in die &lt;a href="https://www.waveshare.com/w/upload/4/46/CM4-DUAL-ETH-4G_5G-BASE_SchDoc.pdf">Schematics des Waveshare Boards&lt;/a> offenbarte, dass die Signalleitung (&amp;ldquo;CD&amp;rdquo; - &amp;ldquo;Card detect&amp;rdquo;) für die physische Erkennung einer SIM-Karte im Slot nicht zum M.2 Slot weitergeführt wird, sodass das Mobilfunkmodul kein entsprechendes Signal erkennen &lt;em>kann&lt;/em>. Kein Wunder also, dass uns permanent ein &amp;ldquo;&lt;strong>sim-missing&lt;/strong>&amp;rdquo; angezeigt wurde.&lt;/p>
+&lt;/h3>&lt;p>&lt;em>(dieses Problem betrifft nur das Telit Modem!)&lt;/em>&lt;/p>
+&lt;p>Ein Blick in die &lt;a href="https://www.waveshare.com/w/upload/4/46/CM4-DUAL-ETH-4G_5G-BASE_SchDoc.pdf">Schematics des Waveshare Boards&lt;/a> offenbarte, dass die Signalleitung (&amp;ldquo;CD&amp;rdquo; - &amp;ldquo;Card detect&amp;rdquo;) für die physische Erkennung einer SIM-Karte im Slot nicht zum M.2 Slot weitergeführt wird, sodass das Mobilfunkmodul kein entsprechendes Signal erkennen &lt;em>kann&lt;/em>. Kein Wunder also, dass uns permanent ein &amp;ldquo;&lt;strong>sim-missing&lt;/strong>&amp;rdquo; angezeigt wurde.&lt;/p>
 &lt;figure>&lt;img src="images/waveshare-schematics.png"/>&lt;figcaption>
 &lt;h4>Screenshot des Waveshare Dual Ethernet IoT Base Boards&lt;/h4>
 &lt;/figcaption>
@@ -71,7 +74,7 @@ AT#HSEN=0,1
 &lt;p>Nach einem Neustart wurde die SIM-Karte im ModemManager schließlich erkannt - am Ende der Ausgabe von &lt;code>mmcli -m 0&lt;/code> wurde eine &amp;ldquo;SIM&amp;rdquo; Zeile mit dem D-Bus Pfad zum SIM-Device eingeblendet:&lt;/p>
 &lt;pre>&lt;code>SIM | dbus path: /org/freedesktop/ModemManager1/SIM/0
 &lt;/code>&lt;/pre>
-&lt;p>&lt;strong>Die soeben erwähnte Anpassung am Telit Modem ist am Quectel-Modem nicht notwendig, solange der am Evaluation Kit angebrachte SIM-Slot statt des Slots am Waveshare-Board verwendet wird!&lt;/strong>&lt;/p>
+&lt;p>&lt;strong>Die soeben erwähnte Anpassung am Telit Modem ist am Quectel-Modem nicht notwendig!&lt;/strong>&lt;/p>
 &lt;p>Im nächsten Schritt wird das jeweiligen Modem aktiviert:&lt;/p>
 &lt;pre>&lt;code>mmcli -m 0 --enable
 &lt;/code>&lt;/pre>

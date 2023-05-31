@@ -6,6 +6,24 @@
 &lt;li>&lt;strong>&lt;a href="https://www.telit.com/devices/fn990axx/">Telit FM990A28&lt;/a>&lt;/strong>&lt;/li>
 &lt;/ul>
 &lt;p>both 5G modems support not only the currently widespread &amp;ldquo;5G New Radio&amp;rdquo; with LTE Control Plane (NSA), but also 5G NR Standalone (SA), so that with a corresponding expansion stage of the 5G mobile network can also benefit from extremely lower latencies.&lt;/p>
+&lt;h2 id="hardware-setup" >Hardware Setup
+&lt;span>
+&lt;a href="#hardware-setup">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Out hardware setup is as follows:&lt;/p>
+&lt;ul>
+&lt;li>Raspberry Pi CM4&lt;/li>
+&lt;li>&lt;a href="https://www.waveshare.com/wiki/CM4-DUAL-ETH-4G/5G-BASE">Waveshare Dual Ethernet IoT Base Board&lt;/a> (with M.2 Slot)&lt;/li>
+&lt;li>Telit FM990A28 M.2 Modul &lt;em>or&lt;/em>&lt;/li>
+&lt;li>Quectel RM520N&lt;/li>
+&lt;li>IoT SIM card of Deutsche Telekom&lt;/li>
+&lt;/ul>
+&lt;figure>&lt;img src="images/waveshare-board.jpg"/>&lt;figcaption>
+&lt;h4>Waveshare Board with Quectel 5G Modem&lt;/h4>
+&lt;/figcaption>
+&lt;/figure>
 &lt;h2 id="commissioning" >Commissioning
 &lt;span>
 &lt;a href="#commissioning">
@@ -36,7 +54,8 @@ Bus 002 Device 003: ID 1bc7:1070 Telit Wireless Solutions FN990
 &lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
 &lt;/a>
 &lt;/span>
-&lt;/h3>&lt;p>A look into the &lt;a href="https://www.waveshare.com/w/upload/4/46/CM4-DUAL-ETH-4G_5G-BASE_SchDoc.pdf">Schematics of the Waveshare Board&lt;/a> revealed that the signal line (&amp;ldquo;CD&amp;rdquo; - &amp;ldquo;Card detect&amp;rdquo;) for the physical detection of a SIM card in the slot is not continued to the M.2 slot, so that the cellular module &lt;em>cannot&lt;/em> detect a corresponding signal. No wonder, then, that we were permanently shown a &amp;ldquo;&lt;strong>sim-missing&lt;/strong>&amp;rdquo;.&lt;/p>
+&lt;/h3>&lt;p>&lt;em>(This problem does not occur with the Quectel modem!)&lt;/em>&lt;/p>
+&lt;p>A look into the &lt;a href="https://www.waveshare.com/w/upload/4/46/CM4-DUAL-ETH-4G_5G-BASE_SchDoc.pdf">Schematics of the Waveshare Board&lt;/a> revealed that the signal line (&amp;ldquo;CD&amp;rdquo; - &amp;ldquo;Card detect&amp;rdquo;) for the physical detection of a SIM card in the slot is not continued to the M.2 slot, so that the cellular module &lt;em>cannot&lt;/em> detect a corresponding signal. No wonder, then, that we were permanently shown a &amp;ldquo;&lt;strong>sim-missing&lt;/strong>&amp;rdquo;.&lt;/p>
 &lt;figure>&lt;img src="images/waveshare-schematics.png"/>&lt;figcaption>
 &lt;h4>Screenshot of the Waveshare Dual Ethernet IoT Base Board&lt;/h4>
 &lt;/figcaption>
@@ -55,7 +74,7 @@ AT#HSEN=0,1
 &lt;p>After a reboot the SIM card was finally recognized in the ModemManager - at the end of the output of &lt;code>mmcli -m 0&lt;/code> a &amp;ldquo;SIM&amp;rdquo; line with the D-Bus path to the SIM device was displayed:&lt;/p>
 &lt;pre>&lt;code>SIM | dbus path: /org/freedesktop/ModemManager1/SIM/0
 &lt;/code>&lt;/pre>
-&lt;p>&lt;strong>The just mentioned adjustment at the Telit modem is not necessary at the Quectel modem as long as the SIM slot attached to the evaluation kit is used instead of the slot at the Waveshare board!&lt;/strong>&lt;/p>
+&lt;p>&lt;strong>The just mentioned adjustment at the Telit modem is not necessary at the Quectel modem!&lt;/strong>&lt;/p>
 &lt;p>The next step is to activate the respective modem:&lt;/p>
 &lt;pre>&lt;code>mmcli -m 0 --enable
 &lt;/code>&lt;/pre>
