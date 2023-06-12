@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>resolvconf on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/resolvconf/</link><description>ZERO GmbH Tech Blog (resolvconf)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Mon, 12 Jun 2023 12:43:53 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/resolvconf/index.xml" rel="self" type="application/rss+xml"/><item><title>Standard DNS Resolver für Dnsmasq auf Raspbian Buster festlegen</title><link>https://blog.zero-iee.com/posts/set-default-dns-resolver-for-dnsmasq-on-raspbian-buster/</link><pubDate>Mon, 12 Jun 2023 12:43:53 +0200</pubDate><guid>https://blog.zero-iee.com/posts/set-default-dns-resolver-for-dnsmasq-on-raspbian-buster/</guid><description>&lt;p>Auf einem unserer Raspberry Pis mit Raspbian &amp;ldquo;Buster&amp;rdquo; Image hatten wir in Kombination mit einem USB-Mobilfunkstick ein merkwürdiges Problem: Der Wireguard VPN Client konnte sich immer wieder beim Starten des Pis nicht korrekt mit dem Wireguard Server verbinden. Das Fehler-Log besagte, dass der Hostname des Wireguard Servers in der Clientkonfiguration nicht aufgelöst werden konnte.&lt;/p>
+&lt;p>Eine mögliche Ursache dafür könnte sein, dass zum Startzeitpunkt des Wireguard-Servers der interne DNS-Resolver des Mobilfunksticks (NAT-/Routerbetrieb) noch nicht einsatzbereit war und die Auflösung deswegen scheiterte. Um die Theorie zu bestätigen und den Fehler zu beheben, sollte nun ein Default-Nameserver eingeführt werden, der unabhängig von der Netzwerkverbindung immer derselbe ist und sofort zur Verfügung steht.&lt;/p>
+&lt;p>Üblicherweise wird der derzeit genutzte DNS-Resolver vom Netzwerkmanagement automatisch in die Datei &lt;code>/etc/resolv.conf&lt;/code> eingetragen - so auch bei Raspbian. In den meisten Fällen wird hier der DNS-Resolver eingetragen, der vom DHCP-Server des lokalen Netzwerks zugewiesen wurde.&lt;/p>
+&lt;p>In unserem Fall gestaltet sich das Setup etwas komplizierter:
+Da wir zu anderen Zwecken Dnsmasq auf dem Raspi betreiben, hat dieses die Kontrolle über die DNS-Namensauflösung übernommen und sich selbst (127.0.0.1) in die &lt;code>/etc/resolv.conf&lt;/code> eingetragen. Dnsmasq selbst übernimmt allerdings nur die Rolle eines &amp;ldquo;caching DNS resolvers&amp;rdquo; - es stellt also nicht selbst Anfragen bis zu den DNS Rootservern, sondern nutzt seiterseits einen weiteren, externen DNS-Resolver.&lt;/p>
+&lt;p>Doch welcher DNS-Resolver wird von Dnsmasq angesprochen?
+Die Antwort findet sich nicht - wie zunächst erwartet - in der Dnsmasq Konfiguration unter &lt;code>/etc/dnsmasq&lt;/code>. Ein Blick in Tabelle der laufenden Prozesse offenbart, dass Dnsmasq mit der Option &lt;code>-r&lt;/code> gestartet wurde:&lt;/p>
+&lt;pre>&lt;code>$ sudo ps -aux
+dnsmasq 647 0.0 0.1 11076 1876 ? S 10:12 0:00 /usr/sbin/dnsmasq -x /run/dnsmasq/dnsmasq.pid -u dnsmasq -r /run/dnsmasq/resolv.conf -7 /etc/dnsmasq.d,.dpkg-dist,
+&lt;/code>&lt;/pre>
+&lt;p>&lt;code>-r&lt;/code> steht für &lt;code>--resolv-file&lt;/code> und zeigt auf eine Datei &lt;code>/run/dnsmasq/resolv.conf&lt;/code>, die die Upstream DNS Resolver enthält, auf welche Dnsmasq zurückgreifen soll.&lt;/p>
+&lt;p>Ein Blick in die Datei verrät, dass der DNS-Resolver unseres ISP dort eingetragen wurde. Die erste Zeile weist darauf hin, dass die Datei von &lt;code>resolvconf&lt;/code> generiert wirde. Doch wie können wir unseren eigenen Standard-Resolver hier hinterlegen?&lt;/p>
+&lt;p>In StackOverflow Antworten wie &lt;a href="https://unix.stackexchange.com/questions/128220/how-do-i-set-my-dns-when-resolv-conf-is-being-overwritten">dieser&lt;/a> wird empfohlen, den Default-Nameserver in die Datei &lt;code>/etc/resolvconf/resolv.conf.d/head&lt;/code> oder &lt;code>base&lt;/code> einzutragen. Auf unserem Target scheitert das jedoch - schon das Verzeichnis &lt;code>/etc/resolvconf/resolv.conf.d&lt;/code> ist nicht zu finden.&lt;/p>
+&lt;p>Der Grund liegt darin, dass Raspbian &amp;ldquo;Buster&amp;rdquo; eine anderen &lt;code>resolvconf&lt;/code> Implementierung nutzt, als neuere Linux-Distributionen: &lt;code>openresolv&lt;/code>. Diese kennt keine &lt;code>head&lt;/code> oder &lt;code>base&lt;/code> Datei. Dennoch ist es möglich, einen oder mehrere Default-Resolver zu hinterlegen, welche automatisch in die Liste der zu nutzenden Resolver aufgenommen werden.&lt;/p>
+&lt;p>Hierzu muss die Konfigurationsdatei &lt;code>/etc/resolvconf.conf&lt;/code> bearbeitet und eine Zeile wie z.B. die Folgende hinzugefügt werden:&lt;/p>
+&lt;pre>&lt;code>name_servers=&amp;quot;9.9.9.9&amp;quot;
+&lt;/code>&lt;/pre>
+&lt;p>Alternativ für mehrere Server z.B.&lt;/p>
+&lt;pre>&lt;code>name_servers=&amp;quot;9.9.9.9 1.1.1.1 8.8.8.8&amp;quot;
+&lt;/code>&lt;/pre>
+&lt;p>Um die Änderungen anzuwenden, wird Dnsmasq&amp;rsquo;s Resolverdatei &lt;code>/run/dnsmasq/resolv.conf&lt;/code> neu generiert:&lt;/p>
+&lt;pre>&lt;code>sudo resolvconf -u /run/dnsmasq/resolv.conf
+&lt;/code>&lt;/pre>
+&lt;p>Ein Check der Datei zeigt, dass die Default-Resolver (neben dem netzwerkspezifischen Resolver &lt;code>10.0.0.1&lt;/code>) aufgenommen wurde:&lt;/p>
+&lt;pre>&lt;code>nameserver 9.9.9.9
+nameserver 10.0.0.1
+&lt;/code>&lt;/pre>
+&lt;p>In diesem Beispiel wurde der Quad9-Server 9.9.9.9 aufgenommen. Um zu prüfen, ob dieser nun tatsächlich bei einer Namensauflösung angesprochen wird, kann folgendes Kommando abgesetzt werden:&lt;/p>
+&lt;p>&lt;em>(zuvor evtl. &lt;code>apt install dnsutils&lt;/code>)&lt;/em>&lt;/p>
+&lt;pre>&lt;code>nslookup -q=txt -class=chaos id.server.on.quad9.net
+&lt;/code>&lt;/pre>
+&lt;p>Die Antwort sollte in etwa wie folgt aussehen:&lt;/p>
+&lt;pre>&lt;code>;; Warning: Message parser reports malformed message packet.
+Server: 127.0.0.1
+Address: 127.0.0.1#53
+Non-authoritative answer:
+id.server.on.quad9.net canonical name = res120.fra.on.quad9.net.
+Authoritative answers can be found from:
+&lt;/code>&lt;/pre>
+&lt;p>Bedeutend ist hierbei, dass der &amp;ldquo;canonical name&amp;rdquo; auf &amp;ldquo;quad9.net&amp;rdquo; endet. Wird stattdessen eine &amp;ldquo;SERVFAIL&amp;rdquo; Antwort zurückgegeben, ist etwas schiefgelaufen und der DNS-Resolver offenbar nicht aktiv.&lt;/p></description></item></channel></rss>
