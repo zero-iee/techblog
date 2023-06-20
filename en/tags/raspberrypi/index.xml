@@ -1,4 +1,56 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>raspberrypi on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/en/tags/raspberrypi/</link><description>ZERO GmbH Tech Blog (raspberrypi)</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Wed, 31 May 2023 12:44:58 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/en/tags/raspberrypi/index.xml" rel="self" type="application/rss+xml"/><item><title>Using Quectel RM520M and Telit FM990A28 5G Modem with Raspberry Pi OS</title><link>https://blog.zero-iee.com/en/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</link><pubDate>Wed, 31 May 2023 12:44:58 +0200</pubDate><guid>https://blog.zero-iee.com/en/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</guid><description>&lt;p>On our odyssey in search of a 5G cellular modem, we have tried several modems from different manufacturers. Unfortunately, the commissioning was not always successful. Sometimes the driver support in the Linux kernel was completely missing - sometimes the control via NetworkManager / ModemManager was buggy or not possible at all.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>raspberrypi on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/en/tags/raspberrypi/</link><description>ZERO GmbH Tech Blog (raspberrypi)</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Tue, 20 Jun 2023 14:31:26 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/en/tags/raspberrypi/index.xml" rel="self" type="application/rss+xml"/><item><title>Using a Mikroe CAN SPI Click 3v3 Module on a Raspberry Pi 4</title><link>https://blog.zero-iee.com/en/posts/mikroe-can-shield-on-raspberry-pi/</link><pubDate>Tue, 20 Jun 2023 14:31:26 +0200</pubDate><guid>https://blog.zero-iee.com/en/posts/mikroe-can-shield-on-raspberry-pi/</guid><description>&lt;p>Mikroelektronika (MikroE) from the Czech Republic offers within its &amp;ldquo;Click&amp;rdquo; ecosystem numerous function modules that can be operated on microcontrollers. One of them is the &amp;ldquo;&lt;a href="https://www.mikroe.com/can-spi-33v-click">CAN SPI Click 3.3V&lt;/a>&amp;rdquo; CAN controller module, which can be connected via the standardized &amp;ldquo;MikroBus&amp;rdquo; interface or SPI. To make the connection to a Raspberry Pi 4 work, we added the &amp;ldquo;&lt;a href="https://www.mikroe.com/pi-4-click-shield">Pi 4 Click Shield&lt;/a>&amp;rdquo;.&lt;/p>
+&lt;p>In this post we will briefly explain how we got the CAN module working in conjunction with the Raspberry Pi 4.&lt;/p>
+&lt;p>The CAN SPI Click 3.3V module contains according to &lt;a href="https://www.mikroe.com/can-spi-33v-click">product description&lt;/a> a MCP2515 CAN controller from Microchip. So that the chip can be recognized by its driver, the device tree must be adapted by means of an overlay. A suitable overlay is already on the Raspi stand distribution &amp;ldquo;Raspberry Pi OS&amp;rdquo;, so that the suitable overlay must be activated only.&lt;/p>
+&lt;p>For this the configuration file &lt;code>/boot/config.txt&lt;/code> is adapted:&lt;/p>
+&lt;pre>&lt;code>[all]
+dtoverlay=mcp2515-can0,oscillator=10000000,interrupt=6
+&lt;/code>&lt;/pre>
+&lt;p>Important are the two parameters &amp;ldquo;oscillator&amp;rdquo; and &amp;ldquo;interrupt&amp;rdquo;:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>oscillator&lt;/code> describes the clock frequency of the clock on the CAN module. &lt;a href="https://download.mikroe.com/documents/add-on-boards/click/canspi-33v/can-spi-click-33v-manual-v100.pdf">The schematic&lt;/a> of the module reveals that it is a 10 MHz crystal - so 10,000,000 Hz must be specified here.&lt;/li>
+&lt;li>&lt;code>interrupt&lt;/code> describes the GPIO pin of the Raspberry Pi, which transmits an interrupt signal on incoming CAN frames. The INT signal from just mentioned schematic can be traced further through the MicroBus interface to the Pi 4 Click Shield, where it is finally &lt;a href="https://download.mikroe.com/documents/add-on-boards/click/pi_4_click_shield/pi-4-click-shield-click-schematic-v101.pdf">connected to GPIO6 of the Raspberry Pi&lt;/a>. Therefore the value &amp;ldquo;6&amp;rdquo; has to be specified here.&lt;/li>
+&lt;/ul>
+&lt;p>Continue with the configuration of the CAN network interface. In the new file &lt;code>/etc/network/interfaces.d/can0&lt;/code> the following content is entered:&lt;/p>
+&lt;pre>&lt;code>auto can0
+iface can0 can static
+bitrate 500000
+&lt;/code>&lt;/pre>
+&lt;p>This sets a bitrate of 500 kBit/s on the CAN interface and starts the interface on boot.&lt;/p>
+&lt;p>After a reboot of the Raspberry Pi you should see the following in the kernel messages:&lt;/p>
+&lt;pre>&lt;code>pi@raspi:~ $ dmesg | grep mcp
+[ 8.239956] mcp251x spi0.0 can0: MCP2515 successfully initialized.
+&lt;/code>&lt;/pre>
+&lt;p>So the CAN controller has been detected successfully.&lt;/p>
+&lt;p>Also an &lt;code>ip link&lt;/code> should now show a CAN interface with the status &amp;ldquo;UP&amp;rdquo;:&lt;/p>
+&lt;pre>&lt;code>pi@raspi:~ $ ip link
+1: lo: &amp;lt;LOOPBACK,UP,LOWER_UP&amp;gt; mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: eth0: &amp;lt;BROADCAST,MULTICAST,UP,LOWER_UP&amp;gt; mtu 1500 qdisc mq state UP mode DEFAULT group default qlen 1000
+link/ether e4:5f:01:af:96:bc brd ff:ff:ff:ff:ff:ff
+3: wlan0: &amp;lt;BROADCAST,MULTICAST&amp;gt; mtu 1500 qdisc noop state DOWN mode DORMANT group default qlen 1000
+link/ether e4:5f:01:af:96:bd brd ff:ff:ff:ff:ff:ff
+4: can0: &amp;lt;NOARP,UP,LOWER_UP,ECHO&amp;gt; mtu 16 qdisc pfifo_fast state UP mode DEFAULT group default qlen 10
+link/can
+&lt;/code>&lt;/pre>
+&lt;p>To test the function we can make use of the &lt;code>can-utils&lt;/code> and send a message to the Raspi itself via CAN:&lt;/p>
+&lt;pre>&lt;code>sudo apt install can-utils
+&lt;/code>&lt;/pre>
+&lt;p>In an SSH session the &lt;code>candump&lt;/code> command is started to show all incoming CAN messages:&lt;/p>
+&lt;pre>&lt;code>sudo candump can0
+&lt;/code>&lt;/pre>
+&lt;p>In another SSH session, test data is sent via &lt;code>cansend&lt;/code>:&lt;/p>
+&lt;pre>&lt;code>sudo cansend 123#FEFE
+&lt;/code>&lt;/pre>
+&lt;p>If the message just sent is also visible in the candump window, the CAN bus is working properly.&lt;/p>
+&lt;hr>
+&lt;p>Sources:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://download.mikroe.com/documents/add-on-boards/click/pi_4_click_shield/pi-4-click-shield-click-schematic-v101.pdf">https://download.mikroe.com/documents/add-on-boards/click/pi_4_click_shield/pi-4-click-shield-click-schematic-v101.pdf&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://download.mikroe.com/documents/add-on-boards/click/canspi-33v/can-spi-click-33v-manual-v100.pdf">https://download.mikroe.com/documents/add-on-boards/click/canspi-33v/can-spi-click-33v-manual-v100.pdf&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://download.mikroe.com/documents/datasheets/MCP2515.pdf">https://download.mikroe.com/documents/datasheets/MCP2515.pdf&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://crycode.de/can-bus-am-raspberry-pi">https://crycode.de/can-bus-am-raspberry-pi&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://www.beyondlogic.org/adding-can-controller-area-network-to-the-raspberry-pi/">https://www.beyondlogic.org/adding-can-controller-area-network-to-the-raspberry-pi/&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>Using Quectel RM520M and Telit FM990A28 5G Modem with Raspberry Pi OS</title><link>https://blog.zero-iee.com/en/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</link><pubDate>Wed, 31 May 2023 12:44:58 +0200</pubDate><guid>https://blog.zero-iee.com/en/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</guid><description>&lt;p>On our odyssey in search of a 5G cellular modem, we have tried several modems from different manufacturers. Unfortunately, the commissioning was not always successful. Sometimes the driver support in the Linux kernel was completely missing - sometimes the control via NetworkManager / ModemManager was buggy or not possible at all.&lt;/p>
 &lt;p>Easy commissioning and stable operation are important to us. Since we do not want to use the modems on only a few devices, a manual adaptation of the Linux kernel is usually out of the question for us. The effort involved is too great and the consequences for the further life cycle of a product are too unclear. Therefore, the operating system - often a Raspberry Pi OS - should be used in its factory state and without major adjustments, if possible.&lt;/p>
 &lt;p>&lt;strong>Two modems have emerged for us that work &amp;ldquo;out of the box&amp;rdquo; in combination with the current &lt;a href="https://www.raspberrypi.com/software/operating-systems/">Raspberry Pi OS&lt;/a> on Debian 11 &amp;ldquo;Bullseye&amp;rdquo; basis (kernel 6.1):&lt;/strong>&lt;/p>
 &lt;ul>

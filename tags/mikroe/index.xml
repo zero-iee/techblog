@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>mikroe on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/mikroe/</link><description>ZERO GmbH Tech Blog (mikroe)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Tue, 20 Jun 2023 14:31:26 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/mikroe/index.xml" rel="self" type="application/rss+xml"/><item><title>Mikroe CAN SPI Click 3v3 an einem Raspberry Pi 4 betreiben</title><link>https://blog.zero-iee.com/posts/mikroe-can-shield-on-raspberry-pi/</link><pubDate>Tue, 20 Jun 2023 14:31:26 +0200</pubDate><guid>https://blog.zero-iee.com/posts/mikroe-can-shield-on-raspberry-pi/</guid><description>&lt;p>Die Firma Mikroelektronika (MikroE) aus Tschechien bietet innerhalb ihres &amp;ldquo;Click&amp;rdquo; Ökosystems zahlreiche Funktionsmodule an, die an Mikrocontrollern betrieben werden können. Eines davon ist das &amp;ldquo;&lt;a href="https://www.mikroe.com/can-spi-33v-click">CAN SPI Click 3.3V&lt;/a>&amp;rdquo; CAN Controller Modul, das über die standardisierte &amp;ldquo;MikroBus&amp;rdquo; Schnittstelle bzw. SPI verbunden werden kann. Damit die Verbindung zu einem Raspberry Pi 4 funktioniert, haben wir das &amp;ldquo;&lt;a href="https://www.mikroe.com/pi-4-click-shield">Pi 4 Click Shield&lt;/a>&amp;rdquo; dazugenommen.&lt;/p>
+&lt;p>In diesem Beitrag wollen wir kurz erklären, wie wir das CAN-Modul im Zusammenspiel mit dem Raspberry Pi 4 in Betrieb genommen haben.&lt;/p>
+&lt;p>Das CAN SPI Click 3.3V Modul enthält laut &lt;a href="https://www.mikroe.com/can-spi-33v-click">Produktbeschreibung&lt;/a> einen MCP2515 CAN controller von Microchip. Damit der Chip von seinem Treiber erkannt werden kann, muss der Device Tree mittels Overlay angepasst werden. Ein passendes Overlay befindet sich bereits auf der Raspi Standdistribution &amp;ldquo;Raspberry Pi OS&amp;rdquo;, sodass das passende Overlay nur aktiviert werden muss.&lt;/p>
+&lt;p>Hierzu wird die Konfigurationsdatei &lt;code>/boot/config.txt&lt;/code> angepasst:&lt;/p>
+&lt;pre>&lt;code>[all]
+dtoverlay=mcp2515-can0,oscillator=10000000,interrupt=6
+&lt;/code>&lt;/pre>
+&lt;p>Wichtig sind die beiden Parameter &amp;ldquo;oscillator&amp;rdquo; und &amp;ldquo;interrupt&amp;rdquo;:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>oscillator&lt;/code> beschreibt die Taktfrequenz des Taktgebers auf dem CAN-Modul. &lt;a href="https://download.mikroe.com/documents/add-on-boards/click/canspi-33v/can-spi-click-33v-manual-v100.pdf">Der Schaltplan&lt;/a> des Moduls offenbart, dass es sich um ein 10 MHz Quarz handelt - also müssen hier 10.000.000 Hz angegeben werden.&lt;/li>
+&lt;li>&lt;code>interrupt&lt;/code> beschreibt den GPIO-Pin des Raspberry Pi, welcher bei eingehenden CAN-Frames ein Interrupt-Signal übermittelt. Das INT Signal aus eben erwähntem Schaltplan lässt sich über die MikroBus Schnittstelle weiter zum Pi 4 Click Shield verfolgen, wo es schließlich &lt;a href="https://download.mikroe.com/documents/add-on-boards/click/pi_4_click_shield/pi-4-click-shield-click-schematic-v101.pdf">mit GPIO6 des Raspberry Pi verbunden&lt;/a> ist. Daher ist hier der Wert &amp;ldquo;6&amp;rdquo; anzugeben.&lt;/li>
+&lt;/ul>
+&lt;p>Weiter geht es mit der Konfiguration der CAN-Netzwerkschnittstelle. In der neuen Datei &lt;code>/etc/network/interfaces.d/can0&lt;/code> wird folgender Inhalt eingetragen:&lt;/p>
+&lt;pre>&lt;code>auto can0
+iface can0 can static
+bitrate 500000
+&lt;/code>&lt;/pre>
+&lt;p>Hierdurch wird auf dem CAN Interface eine Bitrate von 500 kBit/s gesetzt und das Interface beim Boot gestartet.&lt;/p>
+&lt;p>Nach einem Reboot des Raspberry Pi sollte in den Kernelmeldungen folgendes zu sehen sein:&lt;/p>
+&lt;pre>&lt;code>pi@raspi:~ $ dmesg | grep mcp
+[ 8.239956] mcp251x spi0.0 can0: MCP2515 successfully initialized.
+&lt;/code>&lt;/pre>
+&lt;p>Der CAN-Controller wurde also erfolgreich erkannt.&lt;/p>
+&lt;p>Auch ein &lt;code>ip link&lt;/code> sollte nun ein CAN Interface mit dem Status &amp;ldquo;UP&amp;rdquo; zeigen:&lt;/p>
+&lt;pre>&lt;code>pi@raspi:~ $ ip link
+1: lo: &amp;lt;LOOPBACK,UP,LOWER_UP&amp;gt; mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: eth0: &amp;lt;BROADCAST,MULTICAST,UP,LOWER_UP&amp;gt; mtu 1500 qdisc mq state UP mode DEFAULT group default qlen 1000
+link/ether e4:5f:01:af:96:bc brd ff:ff:ff:ff:ff:ff
+3: wlan0: &amp;lt;BROADCAST,MULTICAST&amp;gt; mtu 1500 qdisc noop state DOWN mode DORMANT group default qlen 1000
+link/ether e4:5f:01:af:96:bd brd ff:ff:ff:ff:ff:ff
+4: can0: &amp;lt;NOARP,UP,LOWER_UP,ECHO&amp;gt; mtu 16 qdisc pfifo_fast state UP mode DEFAULT group default qlen 10
+link/can
+&lt;/code>&lt;/pre>
+&lt;p>Um die Funktion zu testen, können wir uns die &lt;code>can-utils&lt;/code> zunutze machen und dem Raspi selbst eine Nachricht über CAN schicken:&lt;/p>
+&lt;pre>&lt;code>sudo apt install can-utils
+&lt;/code>&lt;/pre>
+&lt;p>In einer SSH-Session wird das &lt;code>candump&lt;/code> Kommando gestartet, um alle eingehenden CAN Nachrichten zu zeigen:&lt;/p>
+&lt;pre>&lt;code>sudo candump can0
+&lt;/code>&lt;/pre>
+&lt;p>In einer weiteren SSH-Session werden Testdaten über &lt;code>cansend&lt;/code> geschickt:&lt;/p>
+&lt;pre>&lt;code>sudo cansend 123#FEFE
+&lt;/code>&lt;/pre>
+&lt;p>Wenn die eben verschickte Nachricht auch im candump-Fenster zu sehen ist, funktioniert der CAN-Bus ordnungsgemäß.&lt;/p>
+&lt;hr>
+&lt;p>Quellen:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://download.mikroe.com/documents/add-on-boards/click/pi_4_click_shield/pi-4-click-shield-click-schematic-v101.pdf">https://download.mikroe.com/documents/add-on-boards/click/pi_4_click_shield/pi-4-click-shield-click-schematic-v101.pdf&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://download.mikroe.com/documents/add-on-boards/click/canspi-33v/can-spi-click-33v-manual-v100.pdf">https://download.mikroe.com/documents/add-on-boards/click/canspi-33v/can-spi-click-33v-manual-v100.pdf&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://download.mikroe.com/documents/datasheets/MCP2515.pdf">https://download.mikroe.com/documents/datasheets/MCP2515.pdf&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://crycode.de/can-bus-am-raspberry-pi">https://crycode.de/can-bus-am-raspberry-pi&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://www.beyondlogic.org/adding-can-controller-area-network-to-the-raspberry-pi/">https://www.beyondlogic.org/adding-can-controller-area-network-to-the-raspberry-pi/&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>
