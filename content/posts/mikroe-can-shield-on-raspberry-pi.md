@@ -6,7 +6,7 @@ author: "Thomas Leister"
 tags: ["can", "raspberrypi", "mikroe", "click"]
 ---
 
-Die Firma Mikroelektronika (MikroE) aus Tschechien bietet innerhalb ihres "Click" Ökosystems zahlreiche Funktionsmodule an, die an Mikrocontrollern betrieben werden können. Eines davon ist das "[CAN SPI Click 3.3V](https://www.mikroe.com/can-spi-33v-click)" CAN Controller Modul, das über die standardisierte "MikroBus" Schnittstelle bzw. SPI verbunden werden kann. Damit die Verbindung zu einem Raspberry Pi 4 funktioniert, haben wir das "[Pi 4 Click Shield](https://www.mikroe.com/pi-4-click-shield)" dazugenommen. 
+Die Firma Mikroelektronika (MikroE) aus Serbien bietet innerhalb ihres "Click" Ökosystems zahlreiche Funktionsmodule an, die an Mikrocontrollern betrieben werden können. Eines davon ist das "[CAN SPI Click 3.3V](https://www.mikroe.com/can-spi-33v-click)" CAN Controller Modul, das über die standardisierte "MikroBus" Schnittstelle bzw. SPI verbunden werden kann. Damit die Verbindung zu einem Raspberry Pi 4 funktioniert, haben wir das "[Pi 4 Click Shield](https://www.mikroe.com/pi-4-click-shield)" dazugenommen. 
 
 In diesem Beitrag wollen wir kurz erklären, wie wir das CAN-Modul im Zusammenspiel mit dem Raspberry Pi 4 in Betrieb genommen haben. 
 
