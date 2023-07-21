@@ -1,4 +1,82 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/posts/</link><description>ZERO GmbH Tech Blog (Posts)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Tue, 20 Jun 2023 14:31:26 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Mikroe CAN SPI Click 3v3 an einem Raspberry Pi 4 betreiben</title><link>https://blog.zero-iee.com/posts/mikroe-can-shield-on-raspberry-pi/</link><pubDate>Tue, 20 Jun 2023 14:31:26 +0200</pubDate><guid>https://blog.zero-iee.com/posts/mikroe-can-shield-on-raspberry-pi/</guid><description>&lt;p>Die Firma Mikroelektronika (MikroE) aus Serbien bietet innerhalb ihres &amp;ldquo;Click&amp;rdquo; Ökosystems zahlreiche Funktionsmodule an, die an Mikrocontrollern betrieben werden können. Eines davon ist das &amp;ldquo;&lt;a href="https://www.mikroe.com/can-spi-33v-click">CAN SPI Click 3.3V&lt;/a>&amp;rdquo; CAN Controller Modul, das über die standardisierte &amp;ldquo;MikroBus&amp;rdquo; Schnittstelle bzw. SPI verbunden werden kann. Damit die Verbindung zu einem Raspberry Pi 4 funktioniert, haben wir das &amp;ldquo;&lt;a href="https://www.mikroe.com/pi-4-click-shield">Pi 4 Click Shield&lt;/a>&amp;rdquo; dazugenommen.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/posts/</link><description>ZERO GmbH Tech Blog (Posts)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Fri, 21 Jul 2023 12:18:27 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Ein Labornetzwerk unter Linux einrichten</title><link>https://blog.zero-iee.com/posts/labornetzwerk/</link><pubDate>Fri, 21 Jul 2023 12:18:27 +0200</pubDate><guid>https://blog.zero-iee.com/posts/labornetzwerk/</guid><description>&lt;p>Während meiner Arbeit verbinde ich mich regelmäßig zu verschiedenen Rechnern und eingebetteten Geräten, die über eine Ethernetverbindung erreichbar sind. Diese könnte man nun direkt - wie den Entwicklungsrechner auch - an das Firmennetzwerk anschließen&amp;hellip;&lt;/p>
+&lt;p>&amp;hellip; oder man erstellt für seine Geräte ein eigenes &amp;ldquo;Labornetz&amp;rdquo;, welches nur vom eigenen Laptop aus erreichbar ist und über das man die volle Kontrolle hat. Vorteile können sein:&lt;/p>
+&lt;ul>
+&lt;li>Überblick über die verbundenen Geräte und ihre IP-Adressen&lt;/li>
+&lt;li>Keine Exposition der angeschlossenen Geräte ins Firmennetz (Verbesserung der Sicherheit)&lt;/li>
+&lt;li>Ist am Entwicklungsrechner nur WLAN verfügbar, können die embedded Geräte trotzdem einfach und kabelbunden erreicht werden.&lt;/li>
+&lt;/ul>
+&lt;p>In größeren Unternehmen kann zudem der Zugang zum internen Firmennetzwerk stark reguliert sein, sodass sich überhaupt nur freigeschaltene Geräte nutzen lassen. Mit einem eigenen kleinen Labornetz auf einem zweiten Netzwerkinterface kann das Problem elegant umgangen werden.&lt;/p>
+&lt;h2 id="der-plan" >Der Plan
+&lt;span>
+&lt;a href="#der-plan">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Das Labornetz bekommt das IPv4-Netz &amp;ldquo;10.0.0.1/24&amp;rdquo;. IP-Adressen werden vergeben zwischen 10.0.0.10 und 10.0.0.254. Die eigene Entwicklungsrechner soll darin als Router und DNS-Resolver agieren und besitzt die IP-Adresse 10.0.0.1.&lt;/p>
+&lt;p>Die Netzwerkparameter auf dem Laborinterface werden in den Netzwerkeinstellungen statisch festgelegt:&lt;/p>
+&lt;ul>
+&lt;li>IP-Adresse: 10.0.0.1&lt;/li>
+&lt;li>Netzmaske: /24 (255.255.255.0)&lt;/li>
+&lt;li>Gateway: 10.0.0.1&lt;/li>
+&lt;/ul>
+&lt;h2 id="dnsmasq-als-dhcp--und-dns-server-einsetzen" >Dnsmasq als DHCP- und DNS-Server einsetzen
+&lt;span>
+&lt;a href="#dnsmasq-als-dhcp--und-dns-server-einsetzen">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Der &lt;code>dnsmasq&lt;/code> Server wird genutzt, um einen DHCP- und DNS-Server im Labornetz bereitzustellen. DNS wird benötigt, falls über NAT (siehe letzter Abschnitt) eine Internetverbindung genutzt werden soll.&lt;/p>
+&lt;pre>&lt;code>sudo apt install dnsmasq
+&lt;/code>&lt;/pre>
+&lt;p>In der neuen Konfigurationsdatei&lt;code>/etc/dnsmasq.d/labnet.conf&lt;/code> wird &lt;code>dnsmasq&lt;/code> konfiguriert:&lt;/p>
+&lt;pre>&lt;code>listen-address=10.0.0.1
+bind-interfaces
+dhcp-range=10.0.0.10,10.0.0.254,255.255.255.0,24h
+dhcp-option=option:router,10.0.0.1
+dhcp-option=option:dns-server,10.0.0.1
+&lt;/code>&lt;/pre>
+&lt;p>&lt;code>listen-address&lt;/code> und &lt;code>bind-interfaces&lt;/code> sorgen dafür, dass der mitgelieferte DNS-Resolver nur auf dem Netzwerkinterface horcht, welches die IP-Adresse 10.0.0.1 zugeordnet hat. Lässt man die Option &lt;code>bind-interfaces&lt;/code> weg, versucht &lt;code>dnsmasq&lt;/code>, auch auf dem localhost Interface einen DNS-Service zu instaltiieren, was auf modernen Linuxdistributionen fehlschlägt, da hier schon &lt;code>systemd-resolved&lt;/code> läuft.&lt;/p>
+&lt;p>Die neue Config-Datei wird unten in der Datei &lt;code>/etc/dnsmasq.conf&lt;/code> noch aktiviert, indem folgende Zeile einkommentiert wird:&lt;/p>
+&lt;pre>&lt;code>conf-dir=/etc/dnsmasq.d/,*.conf
+&lt;/code>&lt;/pre>
+&lt;p>Nach einem Neustart von &lt;code>dnsmasq&lt;/code> ziehen sich Geräte, die nur am Laborinterface angesteckt werden, eine IP-Adresse via DHCP und sollten von der Entwicklungsrechner aus erreichbar sein. Welche IP-Adresse ein Gerät bekommen hat, lässt sich im &lt;code>dnsmasq&lt;/code> Log nachvollziehen:&lt;/p>
+&lt;pre>&lt;code>sudo journalctl -u dnsmasq -f
+&lt;/code>&lt;/pre>
+&lt;h2 id="eine-temporäre-internetverbindung-bereitstellen" >Eine (temporäre) Internetverbindung bereitstellen
+&lt;span>
+&lt;a href="#eine-tempor%c3%a4re-internetverbindung-bereitstellen">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Damit angeschlossene Geräte für Softwareinstallationen und Updates einen Weg ins Internet finden, kann auf der Entwicklungsrechner ein Source-NAT eingerichtet werden. Ich nutze hierfür ein kleines Script:&lt;/p>
+&lt;pre>&lt;code>#!/bin/bash
+EXT_IFACE=ens33 # ens33 = interface to public network
+INT_IFACE=ens37 # ens37 = interface to lab network
+if [[ &amp;quot;$1&amp;quot; == &amp;quot;start&amp;quot; ]]; then
+echo &amp;quot;Starting NAT ...&amp;quot;
+sudo sh -c &amp;quot;echo 1 &amp;gt; /proc/sys/net/ipv4/ip_forward&amp;quot;
+sudo iptables --table nat --append POSTROUTING --out-interface $EXT_IFACE -j MASQUERADE
+sudo iptables --append FORWARD --in-interface $INT_IFACE -j ACCEPT
+else
+echo &amp;quot;Stopping NAT ...&amp;quot;
+sudo iptables --table nat --delete POSTROUTING --out-interface $EXT_IFACE -j MASQUERADE
+sudo iptables --delete FORWARD --in-interface $INT_IFACE -j ACCEPT
+fi
+&lt;/code>&lt;/pre>
+&lt;p>&lt;em>(Wichtig: Interfacebezeichnungen &lt;code>ens33&lt;/code> bzw &lt;code>ens37&lt;/code> anpassen via Variablen EXT_IFACE und INT_IFACE!)*&lt;/em>&lt;/p>
+&lt;p>Das Script wird unter &lt;code>~/.local/bin/natctl&lt;/code> abgespeichert und im PATH bekannt gemacht:&lt;/p>
+&lt;p>&lt;code>~/.bashrc&lt;/code>:&lt;/p>
+&lt;pre>&lt;code>export PATH=$PATH:~/.local/bin
+&lt;/code>&lt;/pre>
+&lt;p>Außerdem wird das Script ausführbar gemacht:&lt;/p>
+&lt;pre>&lt;code>chmod u+x ~/.local/bin/netctl
+&lt;/code>&lt;/pre>
+&lt;p>Nach einem &lt;code>source ~/.bashrc&lt;/code> sollte das &lt;code>natctl&lt;/code> Script verfügbar sein. Über zwei einfache Kommandos kann die Internetverbindung dann aktiviert bzw. deaktiviert werden:&lt;/p>
+&lt;pre>&lt;code>natctl start
+natctl stop
+&lt;/code>&lt;/pre>
+&lt;p>&lt;em>Hinweis: Nach einem Reboot muss der &lt;code>dnsmasq&lt;/code> Server evtl. neu gestartet werden, da das Laborinterface zum ersten Startversuch möglicherweise noch nicht die passende IP-Adresse hatte und dieser deshalb fehlgeschlagen sein könnte. Sollten neu angesteckte Geräte also keine IP-Adresse bekommen, lohnt es sich, einmal einen Neustart via &lt;code>sudo systemctl restart dnsmasq&lt;/code> zu versuchen.&lt;/em>&lt;/p>
+&lt;p>&lt;em>Hinweis 2: Auch die NAT-Funktion überlebt (absichtlich) keinen Neustart. Nach dem Booten muss das NAT mittels &lt;code>natctl start&lt;/code> wieder aktiviert werden.&lt;/em>&lt;/p></description></item><item><title>Mikroe CAN SPI Click 3v3 an einem Raspberry Pi 4 betreiben</title><link>https://blog.zero-iee.com/posts/mikroe-can-shield-on-raspberry-pi/</link><pubDate>Tue, 20 Jun 2023 14:31:26 +0200</pubDate><guid>https://blog.zero-iee.com/posts/mikroe-can-shield-on-raspberry-pi/</guid><description>&lt;p>Die Firma Mikroelektronika (MikroE) aus Serbien bietet innerhalb ihres &amp;ldquo;Click&amp;rdquo; Ökosystems zahlreiche Funktionsmodule an, die an Mikrocontrollern betrieben werden können. Eines davon ist das &amp;ldquo;&lt;a href="https://www.mikroe.com/can-spi-33v-click">CAN SPI Click 3.3V&lt;/a>&amp;rdquo; CAN Controller Modul, das über die standardisierte &amp;ldquo;MikroBus&amp;rdquo; Schnittstelle bzw. SPI verbunden werden kann. Damit die Verbindung zu einem Raspberry Pi 4 funktioniert, haben wir das &amp;ldquo;&lt;a href="https://www.mikroe.com/pi-4-click-shield">Pi 4 Click Shield&lt;/a>&amp;rdquo; dazugenommen.&lt;/p>
 &lt;p>In diesem Beitrag wollen wir kurz erklären, wie wir das CAN-Modul im Zusammenspiel mit dem Raspberry Pi 4 in Betrieb genommen haben.&lt;/p>
 &lt;p>Das CAN SPI Click 3.3V Modul enthält laut &lt;a href="https://www.mikroe.com/can-spi-33v-click">Produktbeschreibung&lt;/a> einen MCP2515 CAN controller von Microchip. Damit der Chip von seinem Treiber erkannt werden kann, muss der Device Tree mittels Overlay angepasst werden. Ein passendes Overlay befindet sich bereits auf der Raspi Standdistribution &amp;ldquo;Raspberry Pi OS&amp;rdquo;, sodass das passende Overlay nur aktiviert werden muss.&lt;/p>
 &lt;p>Hierzu wird die Konfigurationsdatei &lt;code>/boot/config.txt&lt;/code> angepasst:&lt;/p>
