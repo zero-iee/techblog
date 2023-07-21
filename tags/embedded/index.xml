@@ -63,7 +63,7 @@ sudo iptables --table nat --delete POSTROUTING --out-interface $EXT_IFACE -j MAS
 sudo iptables --delete FORWARD --in-interface $INT_IFACE -j ACCEPT
 fi
 &lt;/code>&lt;/pre>
-&lt;p>&lt;em>(Wichtig: Interfacebezeichnungen &lt;code>ens33&lt;/code> bzw &lt;code>ens37&lt;/code> anpassen via Variablen EXT_IFACE und INT_IFACE!)*&lt;/em>&lt;/p>
+&lt;p>&lt;em>(Wichtig: Interfacebezeichnungen &lt;code>ens33&lt;/code> bzw &lt;code>ens37&lt;/code> anpassen via Variablen EXT_IFACE und INT_IFACE!)&lt;/em>&lt;/p>
 &lt;p>Das Script wird unter &lt;code>~/.local/bin/natctl&lt;/code> abgespeichert und im PATH bekannt gemacht:&lt;/p>
 &lt;p>&lt;code>~/.bashrc&lt;/code>:&lt;/p>
 &lt;pre>&lt;code>export PATH=$PATH:~/.local/bin

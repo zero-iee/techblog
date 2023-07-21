@@ -45,7 +45,7 @@ else
         sudo iptables --table nat --delete POSTROUTING --out-interface $EXT_IFACE -j MASQUERADE
         sudo iptables --delete FORWARD --in-interface $INT_IFACE -j ACCEPT
 fi
-</code></pre><p><em>(Important: Adjust interface names <code>ens33</code> or <code>ens37</code> via variables EXT_IFACE and INT_IFACE!)*</em></p><p>The script is stored under <code>~/.local/bin/natctl</code> and made known in the PATH:</p><p><code>~/.bashrc</code>:</p><pre><code>export PATH=$PATH:~/.local/bin
+</code></pre><p><em>(Important: Adjust interface names <code>ens33</code> or <code>ens37</code> via variables EXT_IFACE and INT_IFACE!)</em></p><p>The script is stored under <code>~/.local/bin/natctl</code> and made known in the PATH:</p><p><code>~/.bashrc</code>:</p><pre><code>export PATH=$PATH:~/.local/bin
 </code></pre><p>The executable bit on the script is set:</p><pre><code>chmod u+x  ~/.local/bin/netctl
 </code></pre><p>After a <code>source ~/.bashrc</code> the <code>natctl</code> script should be available. With two simple commands the internet connection can then be enabled or disabled:</p><pre><code>natctl start
 natctl stop
