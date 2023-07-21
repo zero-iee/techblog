@@ -73,7 +73,7 @@ To allow connected devices to find a way to the Internet for software installati
 	        sudo iptables --delete FORWARD --in-interface $INT_IFACE -j ACCEPT
 	fi
 
-_(Important: Adjust interface names `ens33` or `ens37` via variables EXT_IFACE and INT_IFACE!)*_
+_(Important: Adjust interface names `ens33` or `ens37` via variables EXT_IFACE and INT_IFACE!)_
 
 The script is stored under `~/.local/bin/natctl` and made known in the PATH:
 

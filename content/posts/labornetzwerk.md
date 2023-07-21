@@ -73,7 +73,7 @@ Damit angeschlossene Geräte für Softwareinstallationen und Updates einen Weg i
 	        sudo iptables --delete FORWARD --in-interface $INT_IFACE -j ACCEPT
 	fi
 
-_(Wichtig: Interfacebezeichnungen `ens33` bzw `ens37` anpassen via Variablen EXT_IFACE und INT_IFACE!)*_
+_(Wichtig: Interfacebezeichnungen `ens33` bzw `ens37` anpassen via Variablen EXT_IFACE und INT_IFACE!)_
 
 Das Script wird unter `~/.local/bin/natctl` abgespeichert und im PATH bekannt gemacht:
 
