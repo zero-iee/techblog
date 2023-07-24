@@ -3,7 +3,7 @@ title: "Setting up a lab network on Linux"
 date: 2023-07-21T13:55:47+02:00
 draft: false
 author: "Thomas Leister"
-tags: [embedded", "network", "linux"]
+tags: ["embedded", "network", "linux"]
 ---
 
 During my work, I regularly connect to various computers and embedded devices that are accessible via an Ethernet connection. These could now be connected directly - like the development computer - to the company network...
