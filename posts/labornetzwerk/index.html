@@ -46,7 +46,7 @@ else
         sudo iptables --delete FORWARD --in-interface $INT_IFACE -j ACCEPT
 fi
 </code></pre><p><em>(Wichtig: Interfacebezeichnungen <code>ens33</code> bzw <code>ens37</code> anpassen via Variablen EXT_IFACE und INT_IFACE!)</em></p><p>Das Script wird unter <code>~/.local/bin/natctl</code> abgespeichert und im PATH bekannt gemacht:</p><p><code>~/.bashrc</code>:</p><pre><code>export PATH=$PATH:~/.local/bin
-</code></pre><p>Außerdem wird das Script ausführbar gemacht:</p><pre><code>chmod u+x  ~/.local/bin/netctl
+</code></pre><p>Außerdem wird das Script ausführbar gemacht:</p><pre><code>chmod u+x  ~/.local/bin/natctl
 </code></pre><p>Nach einem <code>source ~/.bashrc</code> sollte das <code>natctl</code> Script verfügbar sein. Über zwei einfache Kommandos kann die Internetverbindung dann aktiviert bzw. deaktiviert werden:</p><pre><code>natctl start
 natctl stop
 </code></pre><p><em>Hinweis: Nach einem Reboot muss der <code>dnsmasq</code> Server evtl. neu gestartet werden, da das Laborinterface zum ersten Startversuch möglicherweise noch nicht die passende IP-Adresse hatte und dieser deshalb fehlgeschlagen sein könnte. Sollten neu angesteckte Geräte also keine IP-Adresse bekommen, lohnt es sich, einmal einen Neustart via <code>sudo systemctl restart dnsmasq</code> zu versuchen.</em></p><p><em>Hinweis 2: Auch die NAT-Funktion überlebt (absichtlich) keinen Neustart. Nach dem Booten muss das NAT mittels <code>natctl start</code> wieder aktiviert werden.</em></p></div><div class=post-info>Von Thomas Leister<div class="post-date dt-published">2023-07-21</div><a class="post-hidden-url u-url" href=https://blog.zero-iee.com/posts/labornetzwerk/>https://blog.zero-iee.com/posts/labornetzwerk/</a>
