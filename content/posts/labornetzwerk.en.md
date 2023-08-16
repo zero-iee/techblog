@@ -83,7 +83,7 @@ The script is stored under `~/.local/bin/natctl` and made known in the PATH:
 
 The executable bit on the script is set:
 
-	chmod u+x  ~/.local/bin/netctl
+	chmod u+x  ~/.local/bin/natctl
 
 After a `source ~/.bashrc` the `natctl` script should be available. With two simple commands the internet connection can then be enabled or disabled:
 
