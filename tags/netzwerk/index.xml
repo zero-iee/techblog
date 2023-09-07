@@ -12,7 +12,7 @@
 &lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
 &lt;/a>
 &lt;/span>
-&lt;/h2>&lt;p>Das Labornetz bekommt das IPv4-Netz &amp;ldquo;10.0.0.1/24&amp;rdquo;. IP-Adressen werden vergeben zwischen 10.0.0.10 und 10.0.0.254. Die eigene Entwicklungsrechner soll darin als Router und DNS-Resolver agieren und besitzt die IP-Adresse 10.0.0.1.&lt;/p>
+&lt;/h2>&lt;p>Das Labornetz am Netzwerkinterface &lt;code>ens37&lt;/code> bekommt das IPv4-Netz &lt;code>10.0.0.1/24&lt;/code>. IP-Adressen werden vergeben zwischen 10.0.0.10 und 10.0.0.254. Die eigene Entwicklungsrechner soll darin als Router und DNS-Resolver agieren und besitzt die IP-Adresse &lt;code>10.0.0.1&lt;/code>.&lt;/p>
 &lt;p>Die Netzwerkparameter auf dem Laborinterface werden in den Netzwerkeinstellungen statisch festgelegt:&lt;/p>
 &lt;ul>
 &lt;li>IP-Adresse: 10.0.0.1&lt;/li>
@@ -28,19 +28,45 @@
 &lt;/h2>&lt;p>Der &lt;code>dnsmasq&lt;/code> Server wird genutzt, um einen DHCP- und DNS-Server im Labornetz bereitzustellen. DNS wird benötigt, falls über NAT (siehe letzter Abschnitt) eine Internetverbindung genutzt werden soll.&lt;/p>
 &lt;pre>&lt;code>sudo apt install dnsmasq
 &lt;/code>&lt;/pre>
-&lt;p>In der neuen Konfigurationsdatei&lt;code>/etc/dnsmasq.d/labnet.conf&lt;/code> wird &lt;code>dnsmasq&lt;/code> konfiguriert:&lt;/p>
-&lt;pre>&lt;code>listen-address=10.0.0.1
-bind-interfaces
-dhcp-range=10.0.0.10,10.0.0.254,255.255.255.0,24h
+&lt;p>In der neuen Konfigurationsdatei&lt;code>/etc/dnsmasq.d/labnet.conf&lt;/code> wird dnsmasq konfiguriert:&lt;/p>
+&lt;pre>&lt;code># Interface to use
+interface=ens37
+# DHCP settings
+dhcp-authoritative
+dhcp-range=10.0.0.100,10.0.0.250,255.255.255.0,12h
 dhcp-option=option:router,10.0.0.1
 dhcp-option=option:dns-server,10.0.0.1
+# Always assign the same IP addresses to these hosts
+dhcp-host=10:00:00:00:00:01,10.0.0.100
+dhcp-host=10:00:00:00:00:01,10.0.0.101
+# Upstream DNS resolver
+server=127.0.0.53
+# Local TLD
+domain=lab
+local=/lab/
+expand-hosts
+# Static DNS hostnames in labnet
+address=/mydevice-altname.com/10.0.0.101
 &lt;/code>&lt;/pre>
-&lt;p>&lt;code>listen-address&lt;/code> und &lt;code>bind-interfaces&lt;/code> sorgen dafür, dass der mitgelieferte DNS-Resolver nur auf dem Netzwerkinterface horcht, welches die IP-Adresse 10.0.0.1 zugeordnet hat. Lässt man die Option &lt;code>bind-interfaces&lt;/code> weg, versucht &lt;code>dnsmasq&lt;/code>, auch auf dem localhost Interface einen DNS-Service zu instaltiieren, was auf modernen Linuxdistributionen fehlschlägt, da hier schon &lt;code>systemd-resolved&lt;/code> läuft.&lt;/p>
+&lt;p>&lt;code>interface=ens37&lt;/code> sorgt dafür, dass der DNS-Resolver nur auf dem Netzwerkinterface &lt;code>ens37&lt;/code> horcht. Lässt man die Einstellung weg, versucht &lt;code>dnsmasq&lt;/code>, auch auf dem localhost Interface einen DNS-Service zu starten, was auf modernen Linuxdistributionen fehlschlägt, da hier schon &lt;code>systemd-resolved&lt;/code> läuft.&lt;/p>
+&lt;p>Darauf folgend wird der DHCP-Bereich definiert, aus dem IP-Adressen an Geräte im Labornetz verteilt werden sollen (&lt;code>10.0.0.100 - 10.0.0.250&lt;/code>). Dabei wird garantiert, dass eine IP-Adresse mindestens 12 Stunden lang ihre Gültigkeit behält.&lt;/p>
+&lt;p>Über die &lt;code>dhcp-option&lt;/code> Einstellungen wird den abgeschlossenen Geräten mitgeteilt, unter welchen IP-Adressen sich das Standarddateway und der DNS-Resolver befinden. In beiden Fällen handelt es sich um den Rechner, der dnsmasq ausführt.&lt;/p>
+&lt;p>Mit &lt;code>dhcp-host&lt;/code> können IP-Adressen für einzelne Netzwerkinterfaces bzw. Geräte &amp;ldquo;fixiert&amp;rdquo; werden. So wird dem Gerät mit der MAC-Adresse &lt;code>10:00:00:00:00:0&lt;/code> immer die IP-Adresse &lt;code>10.0.0.101&lt;/code> zugeordnet.&lt;/p>
+&lt;p>Sollen die im Labornetz angeschlossenen Geräte Internetzugriff bekommen (siehe Abschnitt &lt;em>&amp;ldquo;Eine (temporäre) Internetverbindung bereitstellen&amp;rdquo;&lt;/em>), muss für die dnsmasq-Instanz ein Upstream-DNS Server festgelegt werden. Dnsmasq kann globale Domainnamen wie z.B. google.com nicht selbst auflösen und greift dafür auf den hier hinterlegten DNS-Server zurück. Hier wird er auf die IP-Adresse des systemd-resolved Services gesetzt, welcher mit den meisten modernen Linuxdistributionen mitgeliefert wird.&lt;/p>
+&lt;p>Die drei folgenden Parameter (&lt;code>domain=&lt;/code> ff.) legen fest, welche Top-Level-Domain innerhalb des Labornetzes genutzt werden soll. Das ist wichtig, um systemd-resolved später mitteilen zu können, welcher DNS-Resolver (näcmlich dnsmasq!) für das Labornetz genutzt werden soll.&lt;/p>
+&lt;p>Wer öffentliche DNS-Einträge manipulieren oder eigene, virtuelle simulieren will, kann eine oder mehrere &lt;code>address=&lt;/code> Parameter setzen. Der darin erwähnte Domainnamen wird dann statisch in die dahinter gesetzte IP-Adresse umgesetzt (und der Upstream-DNS-Server umgangen).&lt;/p>
 &lt;p>Die neue Config-Datei wird unten in der Datei &lt;code>/etc/dnsmasq.conf&lt;/code> noch aktiviert, indem folgende Zeile einkommentiert wird:&lt;/p>
 &lt;pre>&lt;code>conf-dir=/etc/dnsmasq.d/,*.conf
 &lt;/code>&lt;/pre>
+&lt;p>Zu guter Letzt wird systemd-resolved mitgeteilt, dass es Domainnamen mit der Endung &lt;code>.lab&lt;/code> automatisch mithilfe des dnsmasq-Servers auflösen soll, statt mit einem anderen ggf öffentlichen DNS-Server (welcher die Namen im Labornetz selbstverständlich nicht kennen würde):&lt;/p>
+&lt;pre>&lt;code>sudo resolvectl domain ens37 lab
+sudo resolvectl dns ens37 10.0.0.1
+&lt;/code>&lt;/pre>
 &lt;p>Nach einem Neustart von &lt;code>dnsmasq&lt;/code> ziehen sich Geräte, die nur am Laborinterface angesteckt werden, eine IP-Adresse via DHCP und sollten von der Entwicklungsrechner aus erreichbar sein. Welche IP-Adresse ein Gerät bekommen hat, lässt sich im &lt;code>dnsmasq&lt;/code> Log nachvollziehen:&lt;/p>
 &lt;pre>&lt;code>sudo journalctl -u dnsmasq -f
+&lt;/code>&lt;/pre>
+&lt;p>Meldet sich ein Gerät mit dem Hostnamen &lt;code>mydevice&lt;/code> am DHCP-Server, kann es über den Hostnamen &lt;code>mydevice.lab&lt;/code> beispielsweise angepingt werden oder eine SSH-Sitzung wie folgt eröffnet werden:&lt;/p>
+&lt;pre>&lt;code>ssh user@mydevice.lab
 &lt;/code>&lt;/pre>
 &lt;h2 id="eine-temporäre-internetverbindung-bereitstellen" >Eine (temporäre) Internetverbindung bereitstellen
 &lt;span>
