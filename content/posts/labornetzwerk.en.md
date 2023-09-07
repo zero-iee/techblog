@@ -71,7 +71,7 @@ With `dhcp-host` IP addresses for individual network interfaces or devices can b
 
 If the devices connected to the laboratory network are to have Internet access (see section _"Providing a (temporary) Internet connection"_), an upstream DNS server must be specified for the dnsmasq instance. Dnsmasq cannot resolve global domain names such as google.com itself and instead falls back on the DNS server stored here. Here it is set to the IP address of the systemd-resolved service that comes with most modern Linux distributions.
 
-The three following parameters (`domain=` ff.) define which top-level domain should be used within the lab network. This is important to be able to tell systemd-resolved later which DNS resolver (namely dnsmasq!) should be used for the lab network. 
+The three following parameters (`domain=` etc.) define which top-level domain should be used within the lab network. This is important to be able to tell systemd-resolved later which DNS resolver (namely dnsmasq!) should be used for the lab network. 
 If you want to manipulate public DNS records or simulate your own virtual ones, you can set one or more `address=` parameters. The domain name mentioned in it will then be statically converted to the IP address set behind it (and the upstream DNS server will be bypassed). 
 
 
