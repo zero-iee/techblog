@@ -21,7 +21,7 @@ In larger companies, access to the internal company network may also be heavily 
 
 ## The plan
 
-The lab network gets the IPv4 network "10.0.0.1/24". IP addresses are assigned between 10.0.0.10 and 10.0.0.254. The own development computer shall act as router and DNS resolver in it and has the IP address 10.0.0.1.
+The laboratory network at the network interface `ens37` gets the IPv4 network `10.0.0.1/24`. IP addresses are assigned between 10.0.0.10 and 10.0.0.254. The own development computer is to act in it as router and DNS resolver and has the IP address `10.0.0.1`.
 
 The network parameters on the lab interface are set statically in the network settings:
 
@@ -31,27 +31,69 @@ The network parameters on the lab interface are set statically in the network se
 
 ## Using Dnsmasq as DHCP and DNS server
 
-The `dnsmasq` server is used to provide a DHCP and DNS server in the lab network. DNS is needed if an internet connection is to be used via NAT (see last section).
+The `dnsmasq` server is used to provide a DHCP and DNS server in the laboratory network. DNS is needed if an internet connection is to be used via NAT (see last section).
 
 	sudo apt install dnsmasq
 
-In the new configuration file `/etc/dnsmasq.d/labnet.conf` `dnsmasq` is configured:
+In the new configuration file `/etc/dnsmasq.d/labnet.conf` dnsmasq is configured:
 
-	listen-address=10.0.0.1
-	bind-interfaces
-	dhcp-range=10.0.0.10,10.0.0.254,255.255.255.0,24h
+	# interface to use
+	interface=ens37
+	
+	# DHCP settings
+	dhcp-authoritative
+	dhcp-range=10.0.0.100,10.0.0.250,255.255.255.0,12h
 	dhcp-option=option:router,10.0.0.1
 	dhcp-option=option:dns-server,10.0.0.1
+	
+	# Always assign the same IP addresses to these hosts
+	dhcp-host=10:00:00:00:00:01,10.0.0.100
+	dhcp-host=10:00:00:00:00:01,10.0.0.101
+	
+	# Upstream DNS resolver
+	server=127.0.0.53
+	
+	# Local TLD
+	domain=lab
+	local=/lab/
+	expand-hosts
+	
+	# Static DNS hostnames in labnet
+	address=/mydevice-altname.com/10.0.0.101
 
-`listen-address` and `bind-interfaces` ensure that the supplied DNS resolver only listens on the network interface that has the IP address 10.0.0.1 assigned to it. If you omit the `bind-interfaces` option, `dnsmasq` will try to install a DNS service on the localhost interface as well, which will fail on modern Linux distributions because `systemd-resolved` is already running here. 
+`interface=ens37` makes the DNS resolver listen only on the network interface `ens37`. If you omit the setting, `dnsmasq` tries to start a DNS service on the localhost interface as well, which fails on modern Linux distributions, because `systemd-resolved` is already running here. 
 
-The new config file is still activated at the bottom of the file `/etc/dnsmasq.conf` by commenting the following line:
+Subsequently, the DHCP range is defined from which IP addresses are to be distributed to devices in the laboratory network (`10.0.0.100 - 10.0.0.250`). This guarantees that an IP address remains valid for at least 12 hours.
+
+The `dhcp-option` settings are used to tell the terminated devices under which IP addresses the default gateway and DNS resolver are located. In both cases, this is the host that runs dnsmasq.
+
+With `dhcp-host` IP addresses for individual network interfaces or devices can be "fixed". Thus the device with the MAC address `10:00:00:00:0` is always assigned the IP address `10.0.0.101`.
+
+If the devices connected to the laboratory network are to have Internet access (see section _"Providing a (temporary) Internet connection"_), an upstream DNS server must be specified for the dnsmasq instance. Dnsmasq cannot resolve global domain names such as google.com itself and instead falls back on the DNS server stored here. Here it is set to the IP address of the systemd-resolved service that comes with most modern Linux distributions.
+
+The three following parameters (`domain=` ff.) define which top-level domain should be used within the lab network. This is important to be able to tell systemd-resolved later which DNS resolver (namely dnsmasq!) should be used for the lab network. 
+If you want to manipulate public DNS records or simulate your own virtual ones, you can set one or more `address=` parameters. The domain name mentioned in it will then be statically converted to the IP address set behind it (and the upstream DNS server will be bypassed). 
+
+
+The new config file is still activated at the bottom of the `/etc/dnsmasq.conf` file by commenting the following line:
 
 	conf-dir=/etc/dnsmasq.d/,*.conf
 
-After restarting `dnsmasq`, devices that are only plugged into the lab interface will get an IP address via DHCP and should be reachable from the development computer. Which IP address a device got can be traced in the `dnsmasq` log:
+Finally, systemd-resolved is told to automatically resolve domain names ending in `.lab` using the dnsmasq server instead of any other possibly public DNS server (which of course would not know the names on the lab network):
+
+	sudo resolvectl domain ens37 lab
+	sudo resolvectl dns ens37 10.0.0.1
+
+
+After restarting `dnsmasq`, devices that are only plugged into the lab interface will pull an IP address via DHCP and should be reachable from the development computer. Which IP address a device got can be traced in the `dnsmasq` log:
 
 	sudo journalctl -u dnsmasq -f
+
+If a device with the hostname `mydevice` reports to the DHCP server, it can be pinged using the hostname `mydevice.lab` for example, or an SSH session can be opened as follows:
+
+	ssh user@mydevice.lab
+
+
 
 ## Providing a (temporary) Internet connection
 
