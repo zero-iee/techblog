@@ -19,6 +19,7 @@
 &lt;li>Netmask: /24 (255.255.255.0)&lt;/li>
 &lt;li>Gateway: 10.0.0.1&lt;/li>
 &lt;/ul>
+&lt;p>&lt;strong>All occurrences of &lt;code>ens37 are to be replaced by the own name of the used network interface! Often for example: &lt;/code>eth1&lt;code>or&lt;/code>enp85s0` or similar!)&lt;/strong>.&lt;/p>
 &lt;h2 id="using-dnsmasq-as-dhcp-and-dns-server" >Using Dnsmasq as DHCP and DNS server
 &lt;span>
 &lt;a href="#using-dnsmasq-as-dhcp-and-dns-server">
@@ -58,9 +59,39 @@ If you want to manipulate public DNS records or simulate your own virtual ones, 
 &lt;p>The new config file is still activated at the bottom of the &lt;code>/etc/dnsmasq.conf&lt;/code> file by commenting the following line:&lt;/p>
 &lt;pre>&lt;code>conf-dir=/etc/dnsmasq.d/,*.conf
 &lt;/code>&lt;/pre>
-&lt;p>Finally, systemd-resolved is told to automatically resolve domain names ending in &lt;code>.lab&lt;/code> using the dnsmasq server instead of any other possibly public DNS server (which of course would not know the names on the lab network):&lt;/p>
-&lt;pre>&lt;code>sudo resolvectl domain ens37 lab
-sudo resolvectl dns ens37 10.0.0.1
+&lt;p>Last but not least, systemd-resolved is told to automatically resolve domain names ending with &lt;code>.lab&lt;/code> using the dnsmasq server instead of another possibly public DNS server (which of course would not know the names in the lab network). For this purpose, a new systemd service file &lt;code>/etc/system/system/resolved-set-dns-ens37.service&lt;/code> is created:&lt;/p>
+&lt;pre>&lt;code>[Unit]
+Description=Pper-link DNS configuration for ens37
+BindsTo=sys-subsystem-net-devices-ens37.device
+After=sys-subsystem-net-devices-ens37.device
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/resolvectl dns ens37 10.0.0.1
+ExecStart=/usr/bin/resolvectl domain ens37 ~lab
+ExecStopPost=/usr/bin/resolvectl revert ens37
+RemainAfterExit=yes
+[Install]
+WantedBy=sys-subsystem-net-devices-ens37.device
+&lt;/code>&lt;/pre>
+&lt;p>&lt;em>(the tilde character ~ in front of the &amp;ldquo;lab&amp;rdquo; is important here, so that the DNS server is only used for the named &amp;ldquo;lab&amp;rdquo; top-level domain!)&lt;/em>.&lt;/p>
+&lt;p>The new Service is activated by:&lt;/p>
+&lt;pre>&lt;code>sudo systemctl daemon-reload
+sudo systemctl enable --now resolved-set-dns-ens37
+&lt;/code>&lt;/pre>
+&lt;p>A&lt;/p>
+&lt;pre>&lt;code>sudo resolvectl status
+&lt;/code>&lt;/pre>
+&lt;p>should show that &amp;ldquo;DNS Servers&amp;rdquo; and &amp;ldquo;DNS Domain&amp;rdquo; are set:&lt;/p>
+&lt;pre>&lt;code>Link 3 (ens37)
+Aktuelle Bereiche: DNS
+DefaultRoute-Einstellung: nein
+LLMNR-Einstellung: ja
+MulticastDNS-Einstellung: nein
+DNSOverTLS-Einstellung: nein
+DNSSEC-Einstellung: nein
+DNSSEC unterstützt: nein
+DNS-Server: 10.0.0.1
+DNS-Domäne: ~Labor
 &lt;/code>&lt;/pre>
 &lt;p>After restarting &lt;code>dnsmasq&lt;/code>, devices that are only plugged into the lab interface will pull an IP address via DHCP and should be reachable from the development computer. Which IP address a device got can be traced in the &lt;code>dnsmasq&lt;/code> log:&lt;/p>
 &lt;pre>&lt;code>sudo journalctl -u dnsmasq -f
