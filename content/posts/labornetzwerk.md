@@ -29,6 +29,8 @@ Die Netzwerkparameter auf dem Laborinterface werden in den Netzwerkeinstellungen
 * Netzmaske: /24 (255.255.255.0)
 * Gateway: 10.0.0.1
 
+**Alle Vorkommen von `ens37` sind durch den eigenen Namen des genutzten Netzwerkinterfaces zu ersetzen! Oftmals zum Beispiel auch: `eth1` oder `enp85s0` o.Ä!)**
+
 ## Dnsmasq als DHCP- und DNS-Server einsetzen
 
 Der `dnsmasq` Server wird genutzt, um einen DHCP- und DNS-Server im Labornetz bereitzustellen. DNS wird benötigt, falls über NAT (siehe letzter Abschnitt) eine Internetverbindung genutzt werden soll.
@@ -80,10 +82,48 @@ Die neue Config-Datei wird unten in der Datei `/etc/dnsmasq.conf` noch aktiviert
 
 	conf-dir=/etc/dnsmasq.d/,*.conf
 
-Zu guter Letzt wird systemd-resolved mitgeteilt, dass es Domainnamen mit der Endung `.lab` automatisch mithilfe des dnsmasq-Servers auflösen soll, statt mit einem anderen ggf öffentlichen DNS-Server (welcher die Namen im Labornetz selbstverständlich nicht kennen würde):
+Zu guter Letzt wird systemd-resolved mitgeteilt, dass es Domainnamen mit der Endung `.lab` automatisch mithilfe des dnsmasq-Servers auflösen soll, statt mit einem anderen ggf öffentlichen DNS-Server (welcher die Namen im Labornetz selbstverständlich nicht kennen würde). Hierzu wird eine neue systemd Servicedatei `/etc/systemd/system/resolved-set-dns-ens37.service` angelegt:
 
-	sudo resolvectl domain ens37 lab
-	sudo resolvectl dns ens37 10.0.0.1
+	[Unit]
+	Description=Per-link DNS configuration for ens37
+	BindsTo=sys-subsystem-net-devices-ens37.device
+	After=sys-subsystem-net-devices-ens37.device
+	
+	[Service]
+	Type=oneshot
+	ExecStart=/usr/bin/resolvectl dns ens37 10.0.0.1
+	ExecStart=/usr/bin/resolvectl domain ens37 ~lab
+	ExecStopPost=/usr/bin/resolvectl revert ens37
+	RemainAfterExit=yes
+	
+	[Install]
+	WantedBy=sys-subsystem-net-devices-ens37.device
+
+_(das Tildezeichen ~ vor dem "lab" ist hier wichtig, damit der DNS-Server nur für die genannte "lab" Top-Level-Domain genutzt wird!)_
+
+Der neue Service wird aktiviert durch:
+
+
+	sudo systemctl daemon-reload
+	sudo systemctl enable --now resolved-set-dns-ens37
+
+
+Ein 
+
+	sudo resolvectl status
+
+sollte zeigen, dass "DNS Servers" und "DNS Domain" gesetzt sind:
+
+	Link 3 (ens37)
+	      Current Scopes: DNS     
+	DefaultRoute setting: no      
+	       LLMNR setting: yes     
+	MulticastDNS setting: no      
+	  DNSOverTLS setting: no      
+	      DNSSEC setting: no      
+	    DNSSEC supported: no      
+	         DNS Servers: 10.0.0.1
+	          DNS Domain: ~lab 
 
 
 Nach einem Neustart von `dnsmasq` ziehen sich Geräte, die nur am Laborinterface angesteckt werden, eine IP-Adresse via DHCP und sollten von der Entwicklungsrechner aus erreichbar sein. Welche IP-Adresse ein Gerät bekommen hat, lässt sich im `dnsmasq` Log nachvollziehen:

@@ -29,6 +29,8 @@ The network parameters on the lab interface are set statically in the network se
 * Netmask: /24 (255.255.255.0)
 * Gateway: 10.0.0.1
 
+**All occurrences of `ens37 are to be replaced by the own name of the used network interface! Often for example: `eth1` or `enp85s0` or similar!)**.
+
 ## Using Dnsmasq as DHCP and DNS server
 
 The `dnsmasq` server is used to provide a DHCP and DNS server in the laboratory network. DNS is needed if an internet connection is to be used via NAT (see last section).
@@ -79,10 +81,47 @@ The new config file is still activated at the bottom of the `/etc/dnsmasq.conf` 
 
 	conf-dir=/etc/dnsmasq.d/,*.conf
 
-Finally, systemd-resolved is told to automatically resolve domain names ending in `.lab` using the dnsmasq server instead of any other possibly public DNS server (which of course would not know the names on the lab network):
+Last but not least, systemd-resolved is told to automatically resolve domain names ending with `.lab` using the dnsmasq server instead of another possibly public DNS server (which of course would not know the names in the lab network). For this purpose, a new systemd service file `/etc/system/system/resolved-set-dns-ens37.service` is created:
 
-	sudo resolvectl domain ens37 lab
-	sudo resolvectl dns ens37 10.0.0.1
+	[Unit]
+	Description=Pper-link DNS configuration for ens37
+	BindsTo=sys-subsystem-net-devices-ens37.device
+	After=sys-subsystem-net-devices-ens37.device
+	
+	[Service]
+	Type=oneshot
+	ExecStart=/usr/bin/resolvectl dns ens37 10.0.0.1
+	ExecStart=/usr/bin/resolvectl domain ens37 ~lab
+	ExecStopPost=/usr/bin/resolvectl revert ens37
+	RemainAfterExit=yes
+	
+	[Install]
+	WantedBy=sys-subsystem-net-devices-ens37.device
+
+
+_(the tilde character ~ in front of the "lab" is important here, so that the DNS server is only used for the named "lab" top-level domain!)_.
+
+The new Service is activated by:
+
+	sudo systemctl daemon-reload
+	sudo systemctl enable --now resolved-set-dns-ens37
+
+A 
+
+	sudo resolvectl status
+
+should show that "DNS Servers" and "DNS Domain" are set:
+
+	Link 3 (ens37)
+	      Aktuelle Bereiche: DNS     
+	DefaultRoute-Einstellung: nein      
+	       LLMNR-Einstellung: ja     
+	MulticastDNS-Einstellung: nein      
+	  DNSOverTLS-Einstellung: nein      
+	      DNSSEC-Einstellung: nein      
+	    DNSSEC unterstützt: nein      
+	         DNS-Server: 10.0.0.1
+	          DNS-Domäne: ~Labor 
 
 
 After restarting `dnsmasq`, devices that are only plugged into the lab interface will pull an IP address via DHCP and should be reachable from the development computer. Which IP address a device got can be traced in the `dnsmasq` log:
