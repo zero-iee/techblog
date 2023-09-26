@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>dsi on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/dsi/</link><description>ZERO GmbH Tech Blog (dsi)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Tue, 26 Sep 2023 09:39:39 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/dsi/index.xml" rel="self" type="application/rss+xml"/><item><title>DSI Output Fehler beim Start einer Qt Anwendung verhindern (Raspberry Pi)</title><link>https://blog.zero-iee.com/posts/resolving-qt-dsi-failed-to-move-flip-permission-denied-error/</link><pubDate>Tue, 26 Sep 2023 09:39:39 +0200</pubDate><guid>https://blog.zero-iee.com/posts/resolving-qt-dsi-failed-to-move-flip-permission-denied-error/</guid><description>&lt;p>Gestern haben wir bei der Fertigstellung einiger unserer AMPS Einheiten mit Display und Qt-Applikation einen Fehler festgestellt, der dazu geführt hat, dass die Anwendung in seltenen Fällen nicht korrekt gestartet werden kann und crasht. Der Fehler sieht wie folgt aus:&lt;/p>
+&lt;pre tabindex="0">&lt;code>-- Logs begin at Mon 2023-09-25 12:17:01 CEST, end at Mon 2023-09-25 12:32:43 CEST. --
+Sep 25 12:32:24 0601-010200-0012 systemd[1]: Started app.
+Sep 25 12:32:27 0601-010200-0012 tester[444]: Failed to move cursor on screen DSI1: -13
+Sep 25 12:32:27 0601-010200-0012 tester[444]: Failed to move cursor on screen DSI1: -13
+Sep 25 12:32:27 0601-010200-0012 tester[444]: Could not set cursor on screen DSI1: -13
+Sep 25 12:32:28 0601-010200-0012 tester[444]: Could not set DRM mode for screen DSI1 (Permission denied)
+Sep 25 12:32:28 0601-010200-0012 tester[444]: Could not queue DRM page flip on screen DSI1 (Permission denied)
+Sep 25 12:32:29 0601-010200-0012 tester[444]: Could not queue DRM page flip on screen DSI1 (Permission denied)
+&lt;/code>&lt;/pre>&lt;p>&amp;ldquo;In seltenen Fällen&amp;rdquo;, weil der Bug offenbar Timing-abhängig war. Weil uns die Fehlermeldungen allerdings nicht ganz unbekannt waren, konnten wir relativ schnell herausfinden, woher sie kamen:&lt;/p>
+&lt;p>Unsere Anwendung läuft im EGLFS Betrieb und beansprucht die vollständige Kontrolle über das Display. Im Hintergrund läuft kein XServer, Wayland oder ähnliches. Die Fehlermeldungen weisen auf ein Berechtigungsproblem hin, kommen aber eigentlich daher, dass bereits eine andere Anwendung Kontrolle über das Display ausübt.&lt;/p>
+&lt;p>In unserem Fall: Der Boot-Splashscreen (&lt;code>plymouth&lt;/code>) unserer Rasbian Distribution. Der Fehler tritt nur ca 1-2 von 10 Mal auf, weil systemd die Anwendung in den meisten Fällen zu einem Zeitpunkt startet, zu dem das Display bereits wieder freigegeben wurde. Je nach Bootzeit - und die kann ja bekanntlich leicht variieren - kann es aber auch passieren, dass das Timing so ungünstig ist, dass das Splashscreen das Display noch &lt;em>nicht&lt;/em> freigegeben hat, wenn unsere Anwendung dieses bereits nutzen will.&lt;/p>
+&lt;p>Das Problem lässt sich glücklicherweise beseitigen, indem zum systemd Service unserer Anwendung mittels &lt;code>After&lt;/code> eine weitere Abhängigkeit hinzugefügt, z.B.&lt;/p>
+&lt;pre>&lt;code>[Unit]
+Description=App
+After=systemd-user-sessions.service plymouth-quit.service
+[Service]
+Type=simple
+User=pi
+Group=pi
+ExecStart=/opt/tester/bin/tester -platform=eglfs
+[Install]
+WantedBy=multi-user.target
+&lt;/code>&lt;/pre>
+&lt;p>&lt;em>Übrigens: In diesem Zusammenhang kann es sich auch lohnen, zu prüfen, ob der Benutzer, welcher die Applikation ausführt, in der Benutzergruppe &amp;ldquo;render&amp;rdquo; ist. Die Gruppenzugehörigkeit wird benötigt, um als Anwendung überhaupt via eglfs aus das Display zugreifen zu dürfen.&lt;/em>&lt;/p></description></item></channel></rss>
