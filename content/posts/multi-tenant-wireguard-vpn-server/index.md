@@ -73,7 +73,7 @@ Damit Geräte aus dem betreffenden Kunden-VPN antworten können, ist eine weiter
 	iptables -A FORWARD --out-interface mastervpn -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 
-Bisher haben wir nur die `FORWARD` Regeln betrachtet. Dabei fällt aber ein Fall durch's Raster: Was, wenn ein Paket nicht weitergeleitet werden muss, sondern sein Ziel schon erreicht hat? Das ist beispielsweise der Fall, wenn von `customer3-vpn` aus die _Wireguard Server-IP_ von `customer2-vpn` angesprochen wird. Da hier - trotz anders lautender IP-Adresse "der Server selbst" angesprochen wird, kommt kein Forwarding zum Tragen und derartige Kommunikation wird von den bisherigen Regeln nicht verhindert.
+Bisher haben wir nur die `FORWARD` Regeln betrachtet. Dabei fällt aber ein Fall durch's Raster: Was, wenn ein Paket nicht weitergeleitet werden muss, sondern sein Ziel schon erreicht hat? Das ist beispielsweise der Fall, wenn von `customer3-vpn` aus die _Wireguard Server-IP_ von `customer2-vpn` angesprochen wird. Da hier - trotz anders lautender IP-Adresse der Server selbst angesprochen wird, kommt kein Forwarding zum Tragen und derartige Kommunikation wird von den bisherigen Regeln nicht verhindert.
 
 Wenn wir solche Anfragen verhindern wollen, muss eine `INPUT` Regel für jedes der VPNs erzeugt werden, z.B.:
 
