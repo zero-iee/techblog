@@ -31,7 +31,7 @@ pkts bytes target prot opt in out source destination
 &lt;p>Per default kann nun jedes Netzwerkinterface an jedes andere Datenpakete weiterleiten. Clients verschiedener Wireguard-Netze könnten also - wenn sie clientseitig passend konfiguriert sind - miteinander sprechen. Doch dieses Verhalten soll bei uns normalerweise &lt;em>nicht&lt;/em> erlaubt sein. Daher wird die Default-Firewallregel für die &amp;ldquo;FORWARD&amp;rdquo; Chain der &amp;ldquo;Filter&amp;rdquo; Tabelle auf &amp;ldquo;DROP&amp;rdquo; gesetzt:&lt;/p>
 &lt;pre>&lt;code>iptables -P FORWARD DROP
 &lt;/code>&lt;/pre>
-&lt;p>Für einen Fall müssen wir das Forwarding allerdings erlauben - nämlich für den Fall, dass eine Anfrage aus dem MasterVPN heraus in eines der Kunden-VPNs geschickt wird. Für diesen Fall wurde das Forwarding ja zuvor aktiviert:&lt;/p>
+&lt;p>Für einen Fall müssen wir das Forwarding allerdings erlauben - nämlich für den Fall, dass eine Anfrage aus dem &lt;code>mastervpn&lt;/code> heraus in eines der Kunden-VPNs geschickt wird. Für diesen Fall wurde das Forwarding ja zuvor aktiviert:&lt;/p>
 &lt;pre>&lt;code>iptables -A FORWARD --in-interface mastervpn --out-interface customer1-vpn -j ACCEPT
 iptables -A FORWARD --in-interface mastervpn --out-interface customer2-vpn -j ACCEPT
 &lt;/code>&lt;/pre>
