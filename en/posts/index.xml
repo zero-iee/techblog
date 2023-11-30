@@ -1,4 +1,78 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/en/posts/</link><description>ZERO GmbH Tech Blog (Posts)</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Tue, 26 Sep 2023 09:39:39 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/en/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Prevent DSI output errors when starting a Qt application (Raspberry Pi)</title><link>https://blog.zero-iee.com/en/posts/resolving-qt-dsi-failed-to-move-flip-permission-denied-error/</link><pubDate>Tue, 26 Sep 2023 09:39:39 +0200</pubDate><guid>https://blog.zero-iee.com/en/posts/resolving-qt-dsi-failed-to-move-flip-permission-denied-error/</guid><description>&lt;p>Yesterday, while completing some of our AMPS units with display and Qt application, we encountered an error that caused the application to fail to launch correctly and crash in rare cases. The error looks like this:&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/en/posts/</link><description>ZERO GmbH Tech Blog (Posts)</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Wed, 29 Nov 2023 11:31:59 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/en/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Securing a multi-tenant Wireguard VPN server with iptables</title><link>https://blog.zero-iee.com/en/posts/multi-tenant-wireguard-vpn-server/</link><pubDate>Wed, 29 Nov 2023 11:31:59 +0100</pubDate><guid>https://blog.zero-iee.com/en/posts/multi-tenant-wireguard-vpn-server/</guid><description>&lt;p>The &lt;a href="https://www.zero-iee.com/de/products/">ZERO AMPS Nodes&lt;/a> do not have an internet connection by default, but in some cases we equip them with a mobile module so that we can update, maintain or troubleshoot them remotely.&lt;/p>
+&lt;p>To establish a secure connection to our own infrastructure, we mostly use &lt;a href="https://www.wireguard.com">Wireguard&lt;/a> VPNs. Wireguard VPNs are very lightweight, perform well and experience has shown them to be very robust - especially in combination with mobile connections. The Wireguard client on the AMPS nodes connects to our central VPN server. Our developers also use this to establish a connection so that they can connect to the respective AMPS node.&lt;/p>
+&lt;p>However, as we have different customers with projects of different sizes and do not want to compromise on data security, we have separated our VPN networks according to customer and project:&lt;/p>
+&lt;p>Customer A will never be able to come into contact with customer B&amp;rsquo;s devices - this is ensured by the individual VPN networks and our firewall rules, which restrict data traffic within the VPNs and beyond. It is essential to prevent a compromised device from gaining control over all nodes, including those belonging to other customers.&lt;/p>
+&lt;p>As a rule, it is therefore not possible for a node to communicate from a customer VPN. However, there is one exception: a separate &amp;ldquo;master VPN&amp;rdquo; (&lt;code>mastervpn&lt;/code>) allows our developers to reach devices of &lt;em>all other&lt;/em> VPNs via this VPN. So instead of having to deal with many different Wireguard profiles, it is sufficient for our developers to establish a connection with this one master VPN.&lt;/p>
+&lt;p>Our network topology looks something like this:&lt;/p>
+&lt;p>&lt;img src="images/wireguard-networks.svg" alt="Networks Graphics">&lt;/p>
+&lt;p>The firewall rules on the VPN server before implementing the security measures:&lt;/p>
+&lt;pre tabindex="0">&lt;code>root@vpnserver:~# iptables -L -v
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+pkts bytes target prot opt in out source destination
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+pkts bytes target prot opt in out source destination
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+pkts bytes target prot opt in out source destination
+&lt;/code>&lt;/pre>&lt;p>&lt;em>(The reason for the void: another firewall is located outside the VPN server and is already filtering incoming connections)&lt;/em>&lt;/p>
+&lt;p>These rules now had to be expanded so that the following requirements were met:&lt;/p>
+&lt;ul>
+&lt;li>An AMPS node in one of the wireguard networks may only communicate with other AMPS nodes (or the server interface) of its own VPN subnet.&lt;/li>
+&lt;li>A device in the &lt;code>mastervpn&lt;/code> Wiregard network may communicate with &lt;em>any&lt;/em> AMPS nodes in &lt;em>all&lt;/em> Wireguard networks.&lt;/li>
+&lt;/ul>
+&lt;p>To enable communication / packet forwarding across network boundaries (e.g. &lt;code>mastervpn&lt;/code> =&amp;gt; &lt;code>customer1-vpn&lt;/code> or &lt;code>mastervpn&lt;/code> =&amp;gt; &lt;code>customer2-vpn&lt;/code>), IPv4 forwarding must first be activated in the Linux kernel. Temporarily via&lt;/p>
+&lt;pre>&lt;code>sysctl -w net.ipv4.ip_forward=1
+&lt;/code>&lt;/pre>
+&lt;p>&amp;hellip; or permanently by adjusting the file &lt;code>/etc/sysctl.conf&lt;/code>:&lt;/p>
+&lt;pre>&lt;code>net.ipv4.ip_forward=1
+&lt;/code>&lt;/pre>
+&lt;p>Followed by a&lt;/p>
+&lt;pre>&lt;code>sysctl -p
+&lt;/code>&lt;/pre>
+&lt;p>By default, every network interface can now forward data packets to every other network interface. Clients of different Wireguard networks could therefore - if they are configured appropriately on the client side - talk to each other. However, this behavior should &lt;em>not&lt;/em> normally be allowed here. Therefore, the default firewall rule for the &amp;ldquo;FORWARD&amp;rdquo; chain of the &amp;ldquo;Filter&amp;rdquo; table is set to &amp;ldquo;DROP&amp;rdquo;:&lt;/p>
+&lt;pre>&lt;code>iptables -P FORWARD DROP
+&lt;/code>&lt;/pre>
+&lt;p>However, we must allow forwarding in one case - namely in the event that a request is sent from the &lt;code>mastervpn&lt;/code> to one of the customer VPNs. Forwarding was previously activated for this case:&lt;/p>
+&lt;pre>&lt;code>iptables -A FORWARD --in-interface mastervpn --out-interface customer1-vpn -j ACCEPT
+iptables -A FORWARD --in-interface mastervpn --out-interface customer2-vpn -j ACCEPT
+&lt;/code>&lt;/pre>
+&lt;p>To enable devices from the relevant customer VPN to respond, another firewall rule is important, which ensures that AMPS nodes from the customer VPN are allowed to send packets to another wireguard network (&lt;code>mastervpn&lt;/code>) in one case. Namely, if it is a response to a previously received request from &lt;code>mastervpn&lt;/code>:&lt;/p>
+&lt;pre>&lt;code>iptables -A FORWARD --out-interface mastervpn -m state --state ESTABLISHED,RELATED -j ACCEPT
+&lt;/code>&lt;/pre>
+&lt;p>So far, we have only looked at the &lt;code>FORWARD&lt;/code> rules. However, one case falls through the cracks: What if a packet does not need to be forwarded but has already reached its destination? This is the case, for example, if the &lt;em>Wireguard Server-IP&lt;/em> of &lt;code>customer2-vpn&lt;/code> is addressed from &lt;code>customer3-vpn&lt;/code>. As the server itself is addressed here - despite the different IP address - no forwarding is used and such communication is not prevented by the previous rules.&lt;/p>
+&lt;p>If we want to prevent such requests, an &lt;code>INPUT&lt;/code> rule must be created for each of the VPNs, e.g:&lt;/p>
+&lt;pre>&lt;code>iptables -A INPUT -d 10.4.0.1 ! --in-interface mastervpn -j REJECT
+iptables -A INPUT -d 10.2.0.1 ! --in-interface customer1-vpn -j REJECT
+iptables -A INPUT -d 10.3.0.1 ! --in-interface customer2-vpn -j REJECT
+&lt;/code>&lt;/pre>
+&lt;p>For example, &lt;code>10.4.0.1&lt;/code> is the IP address that is used within the &lt;code>mastervpn&lt;/code> for the server itself. The same applies to the other two rules for the &lt;code>customer&lt;/code> VPNs.&lt;/p>
+&lt;p>Firewall rules after implementing the security measures:&lt;/p>
+&lt;pre tabindex="0">&lt;code>root@vpnserver:~# iptables -L -v
+Chain INPUT (policy ACCEPT 5621 packets, 1148K bytes)
+pkts bytes target prot opt in out source destination
+7 588 REJECT all -- !mastervpn any anywhere 10.4.0.1
+0 0 REJECT all -- !customer1-vpn any anywhere 10.2.0.1
+0 0 REJECT all -- !customer2-vpn any anywhere 10.3.0.1
+reject-with icmp-port-unreachable
+Chain FORWARD (policy DROP 17 packets, 1428 bytes)
+pkts bytes target prot opt in out source destination
+2 168 ACCEPT all -- mastervpn customer1-vpn anywhere anywhere
+207 17201 ACCEPT all -- mastervpn customer2-vpn anywhere anywhere
+38 4692 ACCEPT all -- any mastervpn anywhere anywhere state RELATED,ESTABLISHED
+Chain OUTPUT (policy ACCEPT 6708 packets, 1425K bytes)
+pkts bytes target prot opt in out source destination
+&lt;/code>&lt;/pre>&lt;p>This would pave the way through the firewall for our AMPS customer devices.&lt;/p>
+&lt;p>Only one thing is still missing: routing information in the event that someone accesses one of the AMPS nodes in the &lt;code>customer&lt;/code> VPNs from the &lt;code>mastervpn&lt;/code>. It must be specified where response packets should be sent. Finally, the devices only see one IP address from the mastervpn range, e.g. &lt;code>10.4.0.0/24&lt;/code>. As only routing information for their own subnet is available by default, we have to show them the way to 10.4.0.0/24. To do this, an entry for &lt;code>AllowedIPs&lt;/code> is added in the respective Wireguard configuration on the AMPS node:&lt;/p>
+&lt;p>For example&lt;/p>
+&lt;pre>&lt;code>AllowedIPs = 10.3.0.0/16
+&lt;/code>&lt;/pre>
+&lt;p>becomes&lt;/p>
+&lt;pre>&lt;code>AllowedIPs = 10.3.0.0/16,10.4.0.0/24
+&lt;/code>&lt;/pre>
+&lt;p>It is therefore clear to the affected Wireguard client from the customer network that not only packets for its own SU network should be routed via the server, but also (response) packets to the &lt;code>mastervpn&lt;/code> network &lt;code>10.4.0.0/24&lt;/code>.&lt;/p>
+&lt;p>After reloading the client configuration using &lt;code>systemctl restart wg-quick@customer1-vpn&lt;/code>, the change is active and the routing information should be available:&lt;/p>
+&lt;pre>&lt;code>ip route
+&lt;/code>&lt;/pre>
+&lt;p>&lt;em>Note: The above iptables settings are &lt;strong>not&lt;/strong> persistent! To restore them after a reboot, we recommend persisting iptables rules using &lt;code>netfilter-persistent&lt;/code>.&lt;/em>&lt;/p></description></item><item><title>Prevent DSI output errors when starting a Qt application (Raspberry Pi)</title><link>https://blog.zero-iee.com/en/posts/resolving-qt-dsi-failed-to-move-flip-permission-denied-error/</link><pubDate>Tue, 26 Sep 2023 09:39:39 +0200</pubDate><guid>https://blog.zero-iee.com/en/posts/resolving-qt-dsi-failed-to-move-flip-permission-denied-error/</guid><description>&lt;p>Yesterday, while completing some of our AMPS units with display and Qt application, we encountered an error that caused the application to fail to launch correctly and crash in rare cases. The error looks like this:&lt;/p>
 &lt;pre tabindex="0">&lt;code>-- Logs begin at Mon 2023-09-25 12:17:01 CEST, end at Mon 2023-09-25 12:32:43 CEST. --
 Sep 25 12:32:24 0601-010200-0012 systemd[1]: Started app.
 Sep 25 12:32:27 0601-010200-0012 tester[444]: Failed to move cursor on screen DSI1: -13
