@@ -62,7 +62,7 @@ Per default kann nun jedes Netzwerkinterface an jedes andere Datenpakete weiterl
 
 	iptables -P FORWARD DROP
 
-Für einen Fall müssen wir das Forwarding allerdings erlauben - nämlich für den Fall, dass eine Anfrage aus dem MasterVPN heraus in eines der Kunden-VPNs geschickt wird. Für diesen Fall wurde das Forwarding ja zuvor aktiviert:
+Für einen Fall müssen wir das Forwarding allerdings erlauben - nämlich für den Fall, dass eine Anfrage aus dem `mastervpn` heraus in eines der Kunden-VPNs geschickt wird. Für diesen Fall wurde das Forwarding ja zuvor aktiviert:
 
 	iptables -A FORWARD --in-interface mastervpn --out-interface customer1-vpn -j ACCEPT
 	iptables -A FORWARD --in-interface mastervpn --out-interface customer2-vpn -j ACCEPT
