@@ -7,7 +7,7 @@ tags: ["wireguard", "vpn", "shorewall", "firewall", "iptables"]
 ---
 
 
-In our [previous article](/posts/multi-tenant-wireguard-vpn-server/) we introduced the iptables firewall for our Wireguard VPN server. The firewall regulates which traffic is permitted between the individual customer VPNs and the management VPN and prevents access that poses a security risk. 
+In our [previous article](/en/posts/multi-tenant-wireguard-vpn-server/) we introduced the iptables firewall for our Wireguard VPN server. The firewall regulates which traffic is permitted between the individual customer VPNs and the management VPN and prevents access that poses a security risk. 
 
 Although it is possible to manage these rules using the iptables command line tools, it quickly becomes confusing and difficult to understand, especially for outsiders. We have therefore tested the firewall configuration using the "[Shorewall](https://shorewall.org/)" tool and found it to be suitable.
 
