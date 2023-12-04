@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>firewall on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/en/tags/firewall/</link><description>ZERO GmbH Tech Blog (firewall)</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Mon, 04 Dec 2023 08:41:52 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/en/tags/firewall/index.xml" rel="self" type="application/rss+xml"/><item><title>Keeping the Wireguard VPN firewall clear with Shorewall</title><link>https://blog.zero-iee.com/en/posts/vpn-firewall-shorewall/</link><pubDate>Mon, 04 Dec 2023 08:41:52 +0100</pubDate><guid>https://blog.zero-iee.com/en/posts/vpn-firewall-shorewall/</guid><description>&lt;p>In our &lt;a href="https://blog.zero-iee.com/posts/multi-tenant-wireguard-vpn-server/">previous article&lt;/a> we introduced the iptables firewall for our Wireguard VPN server. The firewall regulates which traffic is permitted between the individual customer VPNs and the management VPN and prevents access that poses a security risk.&lt;/p>
+&lt;p>Although it is possible to manage these rules using the iptables command line tools, it quickly becomes confusing and difficult to understand, especially for outsiders. We have therefore tested the firewall configuration using the &amp;ldquo;&lt;a href="https://shorewall.org/">Shorewall&lt;/a>&amp;rdquo; tool and found it to be suitable.&lt;/p>
+&lt;p>Shorewall is a tool that reads simple text files with firewall rules according to a predefined format, validates them and converts them into iptables rules. It is therefore only a front end that operates iptables and not an independent firewall in the strict sense.&lt;/p>
+&lt;p>The static configuration in individual semantically separated text files makes it easier to maintain an overview. Iptables rules can also be persisted in text files via netfilter-persistent (or iptables-persistent), but the syntax is difficult to understand at a glance. This may be sufficient for smaller setups - but we are planning to set up some VPN networks with individual authorisations, among other things. With Shorewall as an iptables configurator, we can keep a better overview of the firewall rules and avoid errors.&lt;/p>
+&lt;p>With Shorewall, the firewall configuration is distributed across several files in the configuration directory &lt;code>/etc/shorewall&lt;/code>:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>/etc/shorewall/zones&lt;/code>: Defines the firewall zones that can later be used in the rule sets.&lt;/li>
+&lt;li>&lt;code>/etc/shorewall/interfaces&lt;/code>: Defines which network interfaces are to be used with Shorewall and which zone they belong to.&lt;/li>
+&lt;li>&lt;code>/etc/shorewall/policy&lt;/code>: Defines the default policies between zones. Is traffic allowed to pass between zones or not?&lt;/li>
+&lt;li>&lt;code>/etc/shorewall/rules&lt;/code>: The fine-grained rules are defined here: For example, if a &lt;code>REJECT&lt;/code> policy was previously defined between zones, port/protocol-based exceptions can be defined here.&lt;/li>
+&lt;/ul>
+&lt;p>Below we take a look at our configuration:&lt;/p>
+&lt;p>&lt;code>zones&lt;/code>:&lt;/p>
+&lt;pre tabindex="0">&lt;code>fw firewall
+wan ipv4
+customer1-vpn ipv4
+customer1-vpn ipv4
+mastervpn ipv4
+&lt;/code>&lt;/pre>&lt;p>We define zone &lt;code>fw&lt;/code> (alias: &lt;code>$FW&lt;/code>) as the firewall&amp;rsquo;s own zone and define further zones for our WAN interface and our VPN networks.&lt;/p>
+&lt;p>&lt;code>interfaces&lt;/code>:&lt;/p>
+&lt;pre tabindex="0">&lt;code>wan eth0 detect dhcp,routefilter,tcpflags
+customer1-vpn customer1-vpn detect routeback
+customer2-vpn customer2-vpn detect routeback
+mastervpn mastervpn detect routeback
+&lt;/code>&lt;/pre>&lt;p>The network interface and zone are linked here - the zone in the first column, the assigned network interface in the second column. The &lt;code>routeback&lt;/code> option is particularly important for the VPN zones, which ensures that traffic arriving at a VPN interface can also leave it again directly, as is the rule with a VPN interface when clients communicate with each other. This client-to-client communication will be deactivated again later, but we want to retain the option of enabling it for individual VPN clients.&lt;/p>
+&lt;p>&lt;code>policy&lt;/code>:&lt;/p>
+&lt;pre tabindex="0">&lt;code># Source # Dest # Policy
+wan all REJECT
+$FW all ACCEPT
+mastervpn all ACCEPT
+customer1-vpn all REJECT
+customer2-vpn all REJECT
+&lt;/code>&lt;/pre>&lt;p>Incoming traffic on the WAN should always be blocked first. Individual exceptions - for example for the VPN server ports - are made later in the &lt;code>rules&lt;/code> file.&lt;/p>
+&lt;p>The firewall itself has no restrictions and can address other zones or interfaces as required.&lt;/p>
+&lt;p>Our &lt;code>mastervpn&lt;/code> may also communicate without restrictions. This is the admin interface from which our developers establish connections to various VPN clients.&lt;/p>
+&lt;p>We take a more restrictive approach with the two customer VPNs &lt;code>customer1-vpn&lt;/code> and &lt;code>customer2-vpn&lt;/code>: These are locked in using &lt;code>REJECT&lt;/code> and are not allowed to communicate with anyone by default.&lt;/p>
+&lt;p>&lt;code>rules&lt;/code>: The exceptions for the policies just explained now follow:&lt;/p>
+&lt;pre tabindex="0">&lt;code># Policy # Source # Dest # Prot # Port
+# Allow access to VPN ports
+ACCEPT wan $FW UDP 51821,51822,51823
+# Allow SSH from internet
+SSH(ACCEPT) wan $FW
+# Allow pings from all VPNs to their Server VPN interface
+Ping(ACCEPT) customer1-vpn $FW:10.2.1.1
+Ping(ACCEPT) customer2-vpn $FW:10.3.0.1
+Ping(ACCEPT) mastervpn $FW:10.4.0.1
+# Explicitly allow inter-client connections on some VPN devices (legacy &amp;#34;admin&amp;#34; devices)
+ACCEPT customer1-vpn:10.2.1.10 customer1-vpn # device 1
+ACCEPT customer1-vpn:10.2.1.11 customer1-vpn # device 2
+ACCEPT customer1-vpn:10.2.1.12 customer1-vpn # device 3
+# Prevent inter-client connections on VPNs for all devices that have not explicitly been allowed in the section before
+REJECT customer1-vpn customer1-vpn:10.2.1.0/24
+REJECT customer2-vpn customer2-vpn:10.3.0.0/16
+&lt;/code>&lt;/pre>&lt;p>Firstly, access to the WAN ports &lt;code>51821,51822,51823&lt;/code> is permitted so that Wireguard VPN clients can connect to the VPN server. We also connect to the VPN server via SSH - this should also remain permitted. In this case, we use the &lt;code>SSH(ACCEPT)&lt;/code> macro from Shorewall so that we do not have to define the port and protocol separately.&lt;/p>
+&lt;p>Pings from VPN clients to their respective server-side interface and its IP addresses should be allowed in all cases. We usually ping the server interface to determine the functionality of a VPN connection.&lt;/p>
+&lt;p>In the next section, client-to-client communication is explicitly enabled for individual VPN clients of the &lt;code>customer1-vpn&lt;/code> network.&lt;/p>
+&lt;p>&amp;hellip; For all other devices, this type of communication is prevented in the following section using &lt;code>REJECT&lt;/code>. Consequently, they can only send back response packets (implicit rule in Shorewall) and cannot initiate connections of their own accord.&lt;/p>
+&lt;p>IP forwarding is already activated on our server. If you have not yet activated the setting &lt;code>net.ipv4.ip_forward&lt;/code> in /etc/sysctl.conf, you can also set &lt;code>IP_FORWARDING&lt;/code> to &lt;code>On&lt;/code> in &lt;code>/etc/shorewall/shorewall.conf&lt;/code> instead.&lt;/p>
+&lt;p>Finally, we took &amp;rsquo;netfilter-persistent&amp;rsquo; out of the boat:&lt;/p>
+&lt;pre>&lt;code>systemctl disable netfilter-persistent
+&lt;/code>&lt;/pre>
+&lt;p>&amp;hellip; and emptied the iptables rules:&lt;/p>
+&lt;pre>&lt;code>iptables -F
+&lt;/code>&lt;/pre>
+&lt;p>&amp;hellip; to be able to test the new Shorewall rules:&lt;/p>
+&lt;pre>&lt;code>shorewall start
+&lt;/code>&lt;/pre>
+&lt;p>After everything worked as hoped, Shorewall was added to the autostart:&lt;/p>
+&lt;pre>&lt;code>systemctl enable shorewall
+&lt;/code>&lt;/pre></description></item></channel></rss>
