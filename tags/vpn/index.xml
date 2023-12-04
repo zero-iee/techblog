@@ -1,4 +1,73 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>vpn on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/vpn/</link><description>ZERO GmbH Tech Blog (vpn)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Wed, 29 Nov 2023 11:31:59 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/vpn/index.xml" rel="self" type="application/rss+xml"/><item><title>Einen Multi-Tenant Wireguard VPN Server mit iptables absichern</title><link>https://blog.zero-iee.com/posts/multi-tenant-wireguard-vpn-server/</link><pubDate>Wed, 29 Nov 2023 11:31:59 +0100</pubDate><guid>https://blog.zero-iee.com/posts/multi-tenant-wireguard-vpn-server/</guid><description>&lt;p>Die &lt;a href="https://www.zero-iee.com/de/products/">ZERO AMPS Nodes&lt;/a> verfügen zwar nicht per default über eine Internetverbindung, doch in einigen Fällen statten wir sie mit einem Mobilfunkmodul aus, sodass wir sie in Absprache mit dem Kunden aus der Ferne aktualisieren, warten oder Fehler beheben können.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>vpn on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/vpn/</link><description>ZERO GmbH Tech Blog (vpn)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Mon, 04 Dec 2023 08:41:52 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/vpn/index.xml" rel="self" type="application/rss+xml"/><item><title>Die Wireguard VPN Firewall mit Shorewall übersichtlich halten</title><link>https://blog.zero-iee.com/posts/vpn-firewall-shorewall/</link><pubDate>Mon, 04 Dec 2023 08:41:52 +0100</pubDate><guid>https://blog.zero-iee.com/posts/vpn-firewall-shorewall/</guid><description>&lt;p>In unserem &lt;a href="https://blog.zero-iee.com/posts/multi-tenant-wireguard-vpn-server/">vorherigen Artikel&lt;/a> haben wir die iptables-Firewall für unseren Wireguard VPN-Server vorgestellt. Die Firewall regelt, welcher Traffic zwischen den einzelnen Kunden-VPNs und dem Management-VPN erlaubt ist und verhindert Zugriffe, die ein Sicherheitsrisiko darstellen.&lt;/p>
+&lt;p>Die Verwaltung dieser Regeln mittels der iptables Command Line Tools ist zwar möglich, allerdings relativ schnell unübersichtlich und insbesondere für Außenstehende schwer zu erfassen. Wir haben deshalb die Firewallkonfiguration über das Tool &amp;ldquo;&lt;a href="https://shorewall.org/">Shorewall&lt;/a>&amp;rdquo; erprobt und für geeignet befunden.&lt;/p>
+&lt;p>Shorewall ist ein Tool, das einfache Textdateien mit Firewallregeln nach einem vordefinierten Format einliest, validiert und in iptables-Regeln umsetzt. Es ist also nur ein Frontend, das iptables bedient und keine eigenständige Firewall im engeren Sinne.&lt;/p>
+&lt;p>Durch die statische Konfiguration in einzelnen semantisch getrennten Textdateien fällt es leichter, den Überblick zu behalten. Iptables-Regeln können zwar via netfilter-persistent (bzw. iptables-persistent) ebenfalls in Textdateien persistiert werden, doch die Syntax ist beim Überfliegen nur schwer verständlich. Für kleinere Setups mag das ausreichen - doch wir planen einige VPN-Netze u.A. mit individuellen Berechtigungen aufzuspannen. Mit Shorewall als iptables-Konfigurator können wir die Übersicht über die Firewallregeln besser behalten und Fehler vermeiden.&lt;/p>
+&lt;p>Die Firewallkonfiguration verteilt sich bei Shorewall über einige Dateien im Konfigurationsverzeichnis &lt;code>/etc/shorewall&lt;/code>:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>/etc/shorewall/zones&lt;/code>: Definiert die Firewall-Zonen, die später in den Regelsätzen verwendet werden können.&lt;/li>
+&lt;li>&lt;code>/etc/shorewall/interfaces&lt;/code>: Regelt, welche Netzwerk-Interfaces mit Shorewall benutzt werden sollen und welchen Zone sie angehören.&lt;/li>
+&lt;li>&lt;code>/etc/shorewall/policy&lt;/code>: Definiert die Default-Policies zwischen Zonen. Darf Traffic zwischen Zonen passieren oder nicht?&lt;/li>
+&lt;li>&lt;code>/etc/shorewall/rules&lt;/code>: Hier werden die feingranularen Regeln definiert: Wurde vorher beispielsweise eine &lt;code>REJECT&lt;/code> Policy zwischen Zonen definiert, können hier port-/protokoll-basierte Ausnahmen definiert werden.&lt;/li>
+&lt;/ul>
+&lt;p>Im Folgenden werfen wir einen Blick in unsere Konfiguration:&lt;/p>
+&lt;p>&lt;code>zones&lt;/code>:&lt;/p>
+&lt;pre tabindex="0">&lt;code>fw firewall
+wan ipv4
+customer1-vpn ipv4
+customer1-vpn ipv4
+mastervpn ipv4
+&lt;/code>&lt;/pre>&lt;p>Wir legen Zone &lt;code>fw&lt;/code> (Alias: &lt;code>$FW&lt;/code>) als Firewall-eigene Zone fest und definieren weitere Zonen für unsere WAN Schnittstelle und unsere VPN-Netze.&lt;/p>
+&lt;p>&lt;code>interfaces&lt;/code>:&lt;/p>
+&lt;pre tabindex="0">&lt;code>wan eth0 detect dhcp,routefilter,tcpflags
+customer1-vpn customer1-vpn detect routeback
+customer2-vpn customer2-vpn detect routeback
+mastervpn mastervpn detect routeback
+&lt;/code>&lt;/pre>&lt;p>Hier werden Netzwerkinterface und Zone miteinander verknüpft - die Zone in der ersten Spalte, das zugeordnete Netzwerkinterface in der zweiten Spalte. Besonders wichtig ist bei den VPN-Zonen die &lt;code>routeback&lt;/code> Option, die dafür sorgt, dass Traffic, der an einem VPN-Interface eingeht, selbiges auch direkt wieder verlassen kann; so wie es bei einem VPN-Interface die Regel ist, wenn Clients miteinander kommunizieren. Später wird diese Client-to-Client Kommunikation zwar wieder deaktiviert, aber wir wollen uns die Möglichkeit vorhalten, sie für einzelne VPN-Clients zu ermöglichen.&lt;/p>
+&lt;p>&lt;code>policy&lt;/code>:&lt;/p>
+&lt;pre tabindex="0">&lt;code># Source # Dest # Policy
+wan all REJECT
+$FW all ACCEPT
+mastervpn all ACCEPT
+customer1-vpn all REJECT
+customer2-vpn all REJECT
+&lt;/code>&lt;/pre>&lt;p>Eingehender Traffic auf WAN soll grundsätzlich erst einmal blockiert werden. Einzelne Ausnahmen - beispielsweise für die VPN-Server-Ports - werden später in der &lt;code>rules&lt;/code> Datei gemacht.&lt;/p>
+&lt;p>Die Firewall selbst bekommt keine Einschränkungen und darf andere Zonen bzw. Interfaces beliebig ansprechen.&lt;/p>
+&lt;p>Unser &lt;code>mastervpn&lt;/code> darf ebenfalls uneingeschränkt kommunizieren. Dabei handelt es sich um das Admin-Interface, von dem aus unsere Entwickler Verbindungen zu verschiedenen VPN-Clients herstellen.&lt;/p>
+&lt;p>Restriktiver gehen wir bei den beiden Kunden-VPNs &lt;code>customer1-vpn&lt;/code> und &lt;code>customer2-vpn&lt;/code> vor: Diese werden mittels &lt;code>REJECT&lt;/code> eingesperrt und dürfen per default erst einmal mit niemandem kommunizieren.&lt;/p>
+&lt;p>&lt;code>rules&lt;/code>: Nun folgen die Ausnahmen für die gerade erklärten Policies:&lt;/p>
+&lt;pre tabindex="0">&lt;code># Policy # Source # Dest # Prot # Port
+# Allow access to VPN ports
+ACCEPT wan $FW UDP 51821,51822,51823
+# Allow SSH from internet
+SSH(ACCEPT) wan $FW
+# Allow pings from all VPNs to their Server VPN interface
+Ping(ACCEPT) customer1-vpn $FW:10.2.1.1
+Ping(ACCEPT) customer2-vpn $FW:10.3.0.1
+Ping(ACCEPT) mastervpn $FW:10.4.0.1
+# Explicitly allow inter-client connections on some VPN devices (legacy &amp;#34;admin&amp;#34; devices)
+ACCEPT customer1-vpn:10.2.1.10 customer1-vpn # device 1
+ACCEPT customer1-vpn:10.2.1.11 customer1-vpn # device 2
+ACCEPT customer1-vpn:10.2.1.12 customer1-vpn # device 3
+# Prevent inter-client connections on VPNs for all devices that have not explicitly been allowed in the section before
+REJECT customer1-vpn customer1-vpn:10.2.1.0/24
+REJECT customer2-vpn customer2-vpn:10.3.0.0/16
+&lt;/code>&lt;/pre>&lt;p>Zuerst wird der Zugriff auf die WAN Ports &lt;code>51821,51822,51823&lt;/code> erlaubt, sodass sich Wireguard-VPN Clients zum VPN Server verbinden können. Außerdem verbinden wir uns über SSH zum VPN-Server - auch das soll weiterhin erlaubt bleiben. In diesem Fall nutzen wir das &lt;code>SSH(ACCEPT)&lt;/code> Makro von Shorewall, um Port und Protokoll nicht gesondert definieren zu müssen.&lt;/p>
+&lt;p>Pings von VPN-Clients zu deren jeweiligen serverseitigen Interface und seiner IP-Adressen sollen in allen Fällen erlaubt sein. Wir pingen in der Regel das Serverinterface an, um die Funktionsfähigkeit einer VPN-Verbindung festzustellen.&lt;/p>
+&lt;p>Im nächsten Abschnitt wird Client-to-Client Kommunikation für einzelne VPN-Clients des Netzes &lt;code>customer1-vpn&lt;/code> explizit ermöglicht.&lt;/p>
+&lt;p>&amp;hellip; für alle anderen Geräte wird diese Art der Kommunikation im darauf folgenden Abschnitt mittels &lt;code>REJECT&lt;/code> verhindert. Sie können folglich nur Antwortpakete zurückschicken (implizite Regel in Shorewall) und nicht von sich aus Verbindungen initiieren.&lt;/p>
+&lt;p>IP-Forwarding ist auf unserem Server bereits aktiviert. Wer die Einstellung &lt;code>net.ipv4.ip_forward&lt;/code> in /etc/sysctl.conf noch nicht aktiviert hat, kann stattdessen auch in &lt;code>/etc/shorewall/shorewall.conf&lt;/code> &lt;code>IP_FORWARDING&lt;/code> auf &lt;code>On&lt;/code> setzen.&lt;/p>
+&lt;p>Zum Schluss haben wir &lt;code>netfilter-persistent&lt;/code> aus dem Boot genommen:&lt;/p>
+&lt;pre>&lt;code>systemctl disable netfilter-persistent
+&lt;/code>&lt;/pre>
+&lt;p>&amp;hellip; und die iptables-Regeln geleert:&lt;/p>
+&lt;pre>&lt;code>iptables -F
+&lt;/code>&lt;/pre>
+&lt;p>&amp;hellip; um dann die neuen Shorewall-Regeln testen zu können:&lt;/p>
+&lt;pre>&lt;code>shorewall start
+&lt;/code>&lt;/pre>
+&lt;p>Nachdem alles wie erhofft funktioniert hat, wurde Shorewall in den Autostart aufgenommen:&lt;/p>
+&lt;pre>&lt;code>systemctl enable shorewall
+&lt;/code>&lt;/pre></description></item><item><title>Einen Multi-Tenant Wireguard VPN Server mit iptables absichern</title><link>https://blog.zero-iee.com/posts/multi-tenant-wireguard-vpn-server/</link><pubDate>Wed, 29 Nov 2023 11:31:59 +0100</pubDate><guid>https://blog.zero-iee.com/posts/multi-tenant-wireguard-vpn-server/</guid><description>&lt;p>Die &lt;a href="https://www.zero-iee.com/de/products/">ZERO AMPS Nodes&lt;/a> verfügen zwar nicht per default über eine Internetverbindung, doch in einigen Fällen statten wir sie mit einem Mobilfunkmodul aus, sodass wir sie in Absprache mit dem Kunden aus der Ferne aktualisieren, warten oder Fehler beheben können.&lt;/p>
 &lt;p>Um eine sichere Verbindung zu unserer eigenen Infrastruktur herzustellen, nutzen wir größtenteils &lt;a href="https://www.wireguard.com">Wireguard&lt;/a> VPNs. Wireguard VPN sind sehr leichtgewichtig, performant und sind sich erfahrungsgemäß sehr robust - vor allem in Kombination mit Mobilfunkverbindungen. Der Wireguard Client auf den AMPS Nodes verbindet sich zu unserem zentralen VPN-Server. Über diesen stellen auch unsere Entwickler eine Verbindung her, sodass sie sich letztendlich zu dem jeweiligen AMPS Node verbinden können.&lt;/p>
 &lt;p>Da wir allerdings verschiedene Kunden mit verschieden großen Projekten haben und bei der Datensicherheit keine Kompromisse eingehen wollen, haben wir unsere VPN-Netze nach Kunden und Projekten aufgetrennt:&lt;/p>
 &lt;p>Kunde A wird so mit seinen Geräten niemals mit Geräten des Kunden B in Kontakt kommen können - dafür sorgen die individuellen VPN-Netze und unsere Firewallregeln, die den Datenverkehr innerhalb der VPNs und darüber hinaus beschränken. Es muss unbedingt verhindert werden, dass ein kompromittiertes Gerät die Kontrolle über sämtliche - auch kundenfremde - Nodes erhält.&lt;/p>
