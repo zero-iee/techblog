@@ -117,7 +117,7 @@ Wichtig: Bei "Login shell" muss `NO` gewählt werden. Andernfalls können Kommun
 
 Von nun an sollte auch eine serielle Kommunikation über die `/dev/ttyS0` Schnittstelle möglich sein. Wie im Fall oben kann erneut Minicom genutzt werden, um die Verbindung zu überprüfen. 
 
-Tipp: Erscheint nicht sofort eine Antwort auf den "AT" Befehl, kann eine erneute Eingabe zum Erfolg führen. Dazu mehr im Abschnitt _"Ein Timing-Problem"_.
+Tipp: Erscheint nicht sofort eine Antwort auf den "AT" Befehl, kann eine erneute Eingabe zum Erfolg führen. Dazu mehr im Abschnitt _"Modem regiert nicht: Ein Auto Bauding-Problem"_.
 
 
 
@@ -323,7 +323,7 @@ Der PPP Daemon kann selbstverständlich auch über ein Systemd "start" Kommando 
 
 
 
-## Ein Timing-Problem
+## Modem regiert nicht: Ein Auto Bauding-Problem
 
 Während unserer Experimente mit Waveshare's SIM7070G-basierten Mobilfunkmodul sind wir auf ein Timing-Problem gestoßen. Wir könnten es lösen, aber es war nicht trivial zu finden, daher wollen wir kurz darauf eingehen. 
 
