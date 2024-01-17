@@ -15,7 +15,7 @@ Wir haben uns das "Waveshare SIM7070G Cat-M/NB-IoT/GPRS HAT" für das Raspberry 
 * Software: Raspbian 12 "Bookworm" 
 
 
-![Animated Webp Image of the blinking Waveshare module attached to a Raspi](images/waveshare-raspi.webp)
+![Animated Webp Image of the blinking Waveshare module attached to a Raspi](/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/images/waveshare-raspi.webp)
 
 <!--more-->
 

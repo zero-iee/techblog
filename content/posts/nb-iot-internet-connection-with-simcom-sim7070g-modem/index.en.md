@@ -4,6 +4,7 @@ date: 2024-01-17T10:00:00+01:00
 draft: false
 author: "Thomas Leister"
 tags: ["iot", "nb-iot", "cellular", "mobileNetwork", "mobilfunk", "waveshare", "raspberrypi"]
+
 ---
 
 We took a closer look at the "Waveshare SIM7070G Cat-M/NB-IoT/GPRS HAT" for the Raspberry Pi and put it into operation. We uncovered various pitfalls and describe below how we set up the NB-IoT modem to connect one of our [#AMPS nodes](https://www.zero-iee.com/de/products/) to the internet. 
@@ -15,7 +16,7 @@ We took a closer look at the "Waveshare SIM7070G Cat-M/NB-IoT/GPRS HAT" for the 
 * Software: Raspbian 12 "Bookworm" 
 
 
-![Animated Webp Image of the blinking Waveshare module attached to a Raspi](images/waveshare-raspi.webp)
+![Animated Webp Image of the blinking Waveshare module attached to a Raspi](/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/images/waveshare-raspi.webp)
 
 <!--more-->
 
