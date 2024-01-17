@@ -31,7 +31,7 @@ sleep 0.1
 echo &amp;quot;out&amp;quot; &amp;gt; /sys/class/gpio/gpio4/direction
 echo &amp;quot;0&amp;quot; &amp;gt; /sys/class/gpio/gpio4/value
 &lt;/code>&lt;/pre>
-&lt;p>_Reminder: &amp;ldquo;0&amp;rdquo; causes a low level on the NPN transistor and therefore an inverted &amp;ldquo;high&amp;rdquo; level on the modem!&lt;/p>
+&lt;p>&lt;em>Reminder: &amp;ldquo;0&amp;rdquo; causes a low level on the NPN transistor and therefore an inverted &amp;ldquo;high&amp;rdquo; level on the modem!&lt;/em>&lt;/p>
 &lt;p>This command sequence is packed into the file &lt;code>/etc/rc.local&lt;/code> before the &lt;code>exit 0&lt;/code> instruction and thus executed once after each boot. By default, the modem should start after it has been supplied with power.&lt;/p>
 &lt;p>If the modem is to be explicitly switched on or off, the input must - as already mentioned - be pulled to a low level on the modem for at least 1.2 seconds. This is achieved by applying a short high level to the module inputs.&lt;/p>
 &lt;p>To switch the power supply, we create a script &lt;code>/home/pi/powertoggle.sh&lt;/code> which contains the following sequence:&lt;/p>
@@ -75,7 +75,7 @@ Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 &lt;pre>&lt;code>AT
 &lt;/code>&lt;/pre>
 &lt;p>to check whether AT commands are accepted. This ensures that we are talking to the correct console. If an &amp;ldquo;OK&amp;rdquo; is returned, everything is OK and the modem is responding to our commands.&lt;/p>
-&lt;p>Minicom can be exited again via &lt;code>STRG+A&lt;/code> and &lt;code>X&lt;/code>.&lt;/p>
+&lt;p>Minicom can be exited again via &lt;code>CTRL+A&lt;/code> and &lt;code>X&lt;/code>.&lt;/p>
 &lt;h2 id="switch-to-the-raspberry-pis-own-serial-interface" >Switch to the Raspberry Pi&amp;rsquo;s own serial interface
 &lt;span>
 &lt;a href="#switch-to-the-raspberry-pis-own-serial-interface">
