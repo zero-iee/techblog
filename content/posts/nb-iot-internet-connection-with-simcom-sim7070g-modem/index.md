@@ -6,6 +6,7 @@ author: "Thomas Leister"
 tags: ["iot", "nb-iot", "cellular", "mobileNetwork", "mobilfunk", "waveshare", "raspberrypi"]
 ---
 
+Wir haben uns das "Waveshare SIM7070G Cat-M/NB-IoT/GPRS HAT" für das Raspberry Pi genauer angesehen und in Betrieb genommen. Dabei haben wir verschiedene Fallstricke aufgedeckt und beschreiben im Folgenden, wie wir das NB-IoT Modem eingerichtet haben, um einen unserer [#AMPS Nodes](https://www.zero-iee.com/de/products/) mit dem Internet zu verbinden. 
 
 * Hardware: 
 	* Raspberry Pi 4 B
@@ -14,17 +15,22 @@ tags: ["iot", "nb-iot", "cellular", "mobileNetwork", "mobilfunk", "waveshare", "
 * Software: Raspbian 12 "Bookworm" 
 
 
+![Animated Webp Image of the blinking Waveshare module attached to a Raspi](images/waveshare-raspi.webp)
+
+<!--more-->
+
+
 ## Modem an Raspberry Pi anschließen
 
 
-Das Modem wird - wie jedes andere HAT-Modul über den Raspberry Pin-Header mit dem Raspberry Pi 4 B verbunden. Zusätzlich haben wir das Modul über das mitgelieferte Kabel mit dem Raspberry Pi verbunden, um in einem ersten Schritt zu überprüfen, ob die serielle Konsole wie erwartet funktioniert.
+Das Modem wird - wie jedes andere HAT-Modul über den Raspberry Pin-Header mit dem Raspberry Pi 4 B verbunden. Zusätzlich haben wir das Modul über das mitgelieferte USB-Kabel mit dem Raspberry Pi verbunden, um in einem ersten Schritt zu überprüfen, ob die serielle Konsole wie erwartet funktioniert.
 
 _Auf das USB-Kabel kann später verzichtet werden!_
 
 
 ## Das Modem mit Strom versorgen
 
-Offenbar ist das Mobilfunkmodem zu einem der GPIO Pins des Raspberry Pis verbunden. Indem der GPIO Pin 4 angesteuert wird, wird das Modem ein- oder ausgeschaltet. Nach dem Start sollte der Pin erst einmal auf einen Low-Pegel geschaltet werden, sodass (bedingt durch einen NPN-Transistor am Modul) am SimCom Modem ein High-Pegel anliegt. Der High-Pegel sollte am Eingang dauerhaft anliegen, wenn _keine_ Aktion gewünscht wird. Wird hingegen eine Ein- oder Ausschaltaktion gewünscht, muss an dem SimCom Modem minedstens für eine Sekunde (einschalten) bzw. 1.2 Sekunden (ausschalten) ein Low-Pegel anliegen, bevor zurück auf einen High-Pegel gewechselt wird.
+Offenbar ist das Mobilfunkmodem zu einem der GPIO Pins des Raspberry Pis verbunden. Indem der GPIO Pin 4 angesteuert wird, wird das Modem ein- oder ausgeschaltet. Nach dem Start sollte der Pin erst einmal auf einen Low-Pegel geschaltet werden, sodass (bedingt durch einen NPN-Transistor am Modul) am SimCom Modem ein High-Pegel anliegt. Der High-Pegel sollte am Eingang dauerhaft anliegen, wenn _keine_ Aktion gewünscht wird. Wird hingegen eine Ein- oder Ausschaltaktion gewünscht, muss an dem SimCom Modem mindestens für eine Sekunde (einschalten) bzw. 1,2 Sekunden (ausschalten) ein Low-Pegel anliegen, bevor zurück auf einen High-Pegel gewechselt wird.
 
 Das initiale Schalten auf den High-Pegel kann so durchgeführt werden:
 
@@ -76,7 +82,7 @@ Laut Datenblatt ([SIM7070_SIM7080_SIM7090 Series_Linux_Application Note_V1.02](h
 * 4: (USB serial): DAM interface
 * 5: (USB serial): Modem port interface
 
-Je nach Product ID kann sich die Portzuordnung unterscheiden - ein Blick ins Datenblatt kann sich daher lohnen. Allerdings befindet sich die für diesen Artikel wichtigste Schnittstelle immer an Position 2: Die AT port Schnittstelle. 
+Je nach Product ID kann sich die Portzuordnung unterscheiden - ein Blick ins Datenblatt kann sich daher lohnen. Allerdings befindet sich die für diesen Artikel wichtigste Schnittstelle immer an Position 2: Die AT-Port Schnittstelle. 
 
 Wie im Mobilfunkbereich üblich, wird auch dieses Mobilfunkmodem über sog. AT-Kommandos auf einer serielle Schnittstelle angesteuert. Der Linux Kernel ab Mainline Kernel 5.8.10 enthält die [notwendigen Anpassungen](https://elixir.bootlin.com/linux/v5.8.10/source/drivers/usb/serial/option.c#L1827) im USB Options Treiber, welcher die zuvor erwähnten seriellen Schnittstellen über USB bereitstellt.
 
@@ -99,7 +105,7 @@ geprüft werden, ob AT-Kommandos akzeptiert werden. So stellen wir sicher, dass 
 
 ## Auf das Raspberry Pi-eigene Serial Interface umstellen
 
-Wenn wir sicher sind, dass die USB-basierte serielle Kommunikation mit dem Modem funktioniert, können wir auch auf das Raspiberry Pi-eigene Serial Interface `ttyS0` umstellen. Das bietet den großen Vorteil, dass keine USB-Verbindung mehr zwischen Raspi und dem Waveshare-Modul bestehen muss: Das USB-Kabel kann entfernt werden. Stattdessen wird das Mobilfunkmodul einfach auf den Raspi-Header aufgesteckt, wie jedes andere HAT-Modul. 
+Wenn wir sicher sind, dass die USB-basierte serielle Kommunikation mit dem Modem funktioniert, können wir auch auf das Raspiberry Pi-eigene Serial Interface `ttyS0` umstellen. Das bietet den großen Vorteil, dass keine USB-Verbindung mehr zwischen Raspi und dem Waveshare-Modul bestehen muss: Das USB-Kabel kann entfernt werden. 
 
 Auf dem Raspberry Pi muss die serielle Konsole noch aktiviert und passend eingestellt werden.
 Dazu im `raspi-config` Tool "03 Interface options" und dann "I5 Serial Port" wählen. Einstellungen:
@@ -107,9 +113,9 @@ Dazu im `raspi-config` Tool "03 Interface options" und dann "I5 Serial Port" wä
 * Login Shell: NO
 * Serial Port Hardware enabled: YES
 
-Wichtig: Bei "Login shell" muss `NO` gewählt werden. Andernfalls können Kommunikationsprobleme mit dem Modem auftreten. Zum Schluss einmal neu starten, um die Einstellungen zu aktivieren. 
+Wichtig: Bei "Login shell" muss `NO` gewählt werden. Andernfalls können Kommunikationsprobleme mit dem Modem auftreten. Zum Schluss das Raspi einmal neu starten, um die Einstellungen zu aktivieren. 
 
-Von nun an sollte auch eine serielle Kommunikation über die /dev/ttyS0 Schnittstelle möglich sein. Wie im Fall oben kann erneut minicom genutzt werden, um die Verbindung zu überprüfen. 
+Von nun an sollte auch eine serielle Kommunikation über die `/dev/ttyS0` Schnittstelle möglich sein. Wie im Fall oben kann erneut minicom genutzt werden, um die Verbindung zu überprüfen. 
 
 Tipp: Erscheint nicht sofort eine Antwort auf den "AT" Befehl, kann eine erneute Eingabe zum Erfolg führen. Dazu mehr im Abschnitt _"Ein Timing-Problem"_.
 
@@ -119,7 +125,7 @@ Tipp: Erscheint nicht sofort eine Antwort auf den "AT" Befehl, kann eine erneute
 
 Um eine IP-Adresse vom Mobilfunkprovider zu bekommen, muss eine PPP-Anmeldung durchgeführt werden. Wir nutzen eine Telekom M2M (Machine-to-mMchine) SIM Karte, welche das Telekom NB-IoT Netz unterstützt. Die PPP-Informationen, die im folgenden genannt werden, passen auf das M2M Netz der Telekom und möglicherweise auch auf das einiger Reseller. Für andere Anbieter müssen APN oder evtl. auch mehr Konfigurationsparameter angepasst werden. 
 
-Die PPP-Verbindung stellen wir über den PPP Daemon "pppd" her, der wie folgt installiert wird: 
+Die PPP-Verbindung stellen wir über den PPP Daemon `pppd` her, der wie folgt installiert wird: 
 
 	sudo apt install ppp
 
@@ -303,7 +309,7 @@ Standardmäßig bringt das ppp-Paket in Debian keinen Systemd Service für den P
 	[Install]
 	WantedBy=multi-user.target
 
-Dieses können wir unter `/etc/systemd/system/ppp@.service` speichern und den Daemon in den Autostart aufnehmen:
+Dieses können wir unter `/etc/systemd/system/ppp@.service` speichern und den Daemon in den Boot-Autostart aufnehmen:
 
 	sudo systemctl daemon-reload
 	sudo systemctl enable ppp@telekomM2M.service
@@ -351,6 +357,131 @@ Da die ChatScript Syntax keinen "sleep" Befehl oder ähnliches zu kennen scheint
 Und tatsächlich - nun konnten wir auch über die native Serial-Schnittstelle mit dem Modem kommunizieren - ganz ohne vorheriges Aufschalten via Minicom. Der PPP-Daemon lieft direkt nach dem Boot. 
 
 Wieso hat es aber über die USB-Serial Verbindung tadellos funktioniert? Wir vermuten, dass die Umwandlung von und zu USB genug Verzögerung in das System einführt, sodass das Timing-Problem in diesem Fall nicht auftritt. 
+
+
+
+## Eine bessere Lösung für das Power Management
+
+Zu Beginn dieses Beitrags haben wir bereits beschrieben, dass sich das SIM7070G Modul über GPIO4 des Raspberry Pis ein- oder ausschalten lässt. Dabei haben wir allerdings unterschlagen, dass wir den Pin in unserem `powertoggle.sh` Script immer für eine Sekunde auf einen High-Pegel schalten (resultierend in einem Low-Pegel am SIM7070G-Modem).
+
+Tatsächlich offenbart das Datenblatt des Mobilfunkmodems folgendes:
+
+* Low-Pegel für mindestens 1.0 Sekunde: Einschalten
+* Low-Pegel für mindestens 1.2 Sekunden: Ausschalten.
+
+Wir können also nicht nur "umschalten" und einen möglicherweise unbekannten Ausgangszustand in sein Gegenteil umkehren, sondern durch präzises Timing beim Schalten gezielt einen "An"- oder "Aus"-Zustand herbeiführen. 
+
+Wir haben zunächst mit Bash-Befehlen experimentiert, aber relativ schnell festgestellt, dass das Timing der Bash-Shell zu ungenau ist, um zuverlässig ein- oder auszuschalten. Daher haben wir ein kleines Tool `modemctl` in C implementiert, das "init", "on" und "off" Argumente annehmen und den GPIO4 Ausgang des Raspis entsprechend präzise ansteuern kann:
+
+Quellcode `modemctl.c`:
+
+```
+/*
+ * modemctl: Controls Waveshare NB-IoT power state by controlling GPIO pin
+ * Installing dependencies: sudo apt install pigpio
+ * Compiling: gcc -o modemctl modemctl.c -l pigpio 
+ * Running: sudo ./modemctl init 
+ *          sudo ./modemctl on 
+ *          sudo ./modemctl off
+ */
+#include <stdio.h>
+#include <string.h>
+#include <pigpio.h>
+
+#define GPIO_PIN 4      // GPIO number of pin
+#define ON_TIME 1.0     // Hold time for turning on
+#define OFF_TIME 1.2    // Hold time for turning off
+
+int main(int argc, char *argv[])  {
+    if (gpioInitialise() < 0) {
+        fprintf(stderr, "pigpio initialisation failed\n");
+        return 1;
+    }
+ 
+    /* Set GPIO modes */
+    gpioSetMode(GPIO_PIN, PI_OUTPUT);
+
+    if (strcmp(argv[1], "init") == 0) {
+        printf("Initialising NB-IoT module power state\n");
+        gpioWrite(GPIO_PIN, 0);     /* Set pin to low to generate HIGH level on PWR input of module */
+    } else if (strcmp(argv[1], "on") == 0) {
+        printf("Turning NB-IoT module ON\n");
+        gpioWrite(GPIO_PIN, 1);     /* Set GPIO4 to 1 for ON_TIME seconds */
+        time_sleep(ON_TIME);
+        gpioWrite(GPIO_PIN, 0);
+    } else if (strcmp(argv[1], "off") == 0) {
+        printf("Turning NB-IoT module OFF\n");
+        gpioWrite(GPIO_PIN, 1);    /* Set GPIO4 to 1 for OFF_TIME seconds */
+        time_sleep(OFF_TIME);
+        gpioWrite(GPIO_PIN, 0);
+    } else {
+        printf("Please provide \"on\" or \"off\" as an argument!\n");
+    }
+}
+```
+
+
+Das Programm wird via 
+
+	gcc -o modemctl modemctl.c -l pigpio
+
+kompiliert und kann dann mit sudo gestartet werden, um das Modul zu schalten, z.B. 
+
+	sudo ./modemctl init
+	sudo ./modemctl on
+
+... um das Modul einzuschalten. 
+
+Zu beachten ist, dass das Ein- und Ausschalten des Modems einige Sekunden dauern kann und die serielle Schnittstelle nicht unmittelbar danach zur Verfügung steht. 
+
+Am Blinken der "Net" LED am Modul kann das Status abgelesen werden: 
+
+* Kein Blinken: Ausgeschaltet
+* Langsames Blinken: Eingeschaltet, aber keine PPP-Verbindung / Datenübertragung
+* Schnelles Blinken (~ 800 Sekunden Zyklus): Eingeschaltet und Datenübertragung aktiv
+
+
+Statt sich darauf zu verlassen, dass das Modem direkt nach dem Boot funktioniert _- wir haben gegenteilige Erfahrungen gemacht -_ können wir also anstelle des `init.sh` Scriptes folgendes in die `/etc/rc.local` aufnehmen:
+
+	/home/pi/modemctl init
+	/home/pi/modemctl on
+
+Hiermit sollte das Modem beim Boot nun zuverlässig aktiviert werden. Das `powertoggle.sh` Script wird nicht mehr benötigt.
+
+
+## Performance
+
+Wie in dem vorher gezeigten ping-Output dargestellt, kann die Latenz der Netzwerkverbindung stark variieren. Wir haben an unserem Standort die Erfahrung gemacht, dass die Latenz zunächst bei einigen Sekunden liegt. Mit anhaltender Datenübertragung sinkt die Latenz aber auf knapp 200 ms. Selbstverständlich eignet sich die Verbindung daher nicht um Übertragen mittlerer oder größerer Datenmengen. Für unsere Anwendungsfälle ist die Verbindung allerdings völlig brauchbar:
+
+* Rollout von Konfigurationsänderungen (SSH / Ansible)
+* Übertragung von Statusinformationen
+* Übertragung kleiner Firmwareupdates
+* Remote-SSH-Login zum Debugging
+
+gping Test:
+
+	gping -i ppp0 -s -n 1.0 -b 60 1.1.1.1
+
+
+![gping Test mit dem oben erwähnten Kommando: Graph zeigt Latenz über 60 Sekunden](images/gping.webp)
+
+Download-Test mit:
+
+	curl http://speedtest.tele2.net/1GB.zip -o /dev/null -m 60
+
+Wir haben innerhalb eines Gebäudes und in Nähe eines Mobilfunkmasten 9,579 kByte/s (~77 kBit/s) im Download gemessen. Zeitspanne: 60 Sekunden. 
+
+Upload-Test:
+
+	curl -T /dev/urandom http://speedtest.tele2.net/upload.php -O /dev/null -m 60
+
+ähnliche bis leicht höhere Datenraten konnten wir auch im Upload erreichen. Allerdings ist uns wegen Verbindungsabbrüchen kein längerer, durchgängiger Upload-Vorgang gelungen. Die Aussagekraft des Tests ist daher zweifelhaft. Ursache für die Abbrüche ist möglicherweise eine Limitierung der zur Verfügung stehenden "Air Time" im NB-IoT Netz. 
+
+Übrigens: Wer (ungeachtet der Latenz) lokal simulieren will, wie sich eine SSH-Session bei der von uns gemessenen Datenübertragungsrate "anfühlt", kann dazu folgendes Kommando verwenden: 
+
+	ssh -o ProxyCommand='pv -qL 9K | nc %h %p | pv -qL 9K' user@target-machine
+
+Zusammenfessend lässt sich aber sagen, dass die Datenrate für die oben genannten Zwecke ausreichen ist. Dank [Wireguard](https://www.wireguard.com/)'s schlankem VPN Protokoll sind wir sogar in der Lage, verhältnismäßig latenzarme Verbindungen zu unserem [Management VPN](/posts/vpn-firewall-shorewall/) herzustellen. Wir sind gespannt, wie sich das System in ersten Feldversuchen schlagen wird.
 
 ---
 
