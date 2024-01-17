@@ -105,7 +105,7 @@ geprüft werden, ob AT-Kommandos akzeptiert werden. So stellen wir sicher, dass 
 
 ## Auf das Raspberry Pi-eigene Serial Interface umstellen
 
-Wenn wir sicher sind, dass die USB-basierte serielle Kommunikation mit dem Modem funktioniert, können wir auch auf das Raspiberry Pi-eigene Serial Interface `ttyS0` umstellen. Das bietet den großen Vorteil, dass keine USB-Verbindung mehr zwischen Raspi und dem Waveshare-Modul bestehen muss: Das USB-Kabel kann entfernt werden. 
+Wenn wir sicher sind, dass die USB-basierte serielle Kommunikation mit dem Modem funktioniert, können wir auch auf das Raspberry Pi-eigene Serial Interface `ttyS0` umstellen. Das bietet den großen Vorteil, dass keine USB-Verbindung mehr zwischen Raspi und dem Waveshare-Modul bestehen muss: Das USB-Kabel kann entfernt werden. 
 
 Auf dem Raspberry Pi muss die serielle Konsole noch aktiviert und passend eingestellt werden.
 Dazu im `raspi-config` Tool "03 Interface options" und dann "I5 Serial Port" wählen. Einstellungen:
@@ -115,7 +115,7 @@ Dazu im `raspi-config` Tool "03 Interface options" und dann "I5 Serial Port" wä
 
 Wichtig: Bei "Login shell" muss `NO` gewählt werden. Andernfalls können Kommunikationsprobleme mit dem Modem auftreten. Zum Schluss das Raspi einmal neu starten, um die Einstellungen zu aktivieren. 
 
-Von nun an sollte auch eine serielle Kommunikation über die `/dev/ttyS0` Schnittstelle möglich sein. Wie im Fall oben kann erneut minicom genutzt werden, um die Verbindung zu überprüfen. 
+Von nun an sollte auch eine serielle Kommunikation über die `/dev/ttyS0` Schnittstelle möglich sein. Wie im Fall oben kann erneut Minicom genutzt werden, um die Verbindung zu überprüfen. 
 
 Tipp: Erscheint nicht sofort eine Antwort auf den "AT" Befehl, kann eine erneute Eingabe zum Erfolg führen. Dazu mehr im Abschnitt _"Ein Timing-Problem"_.
 
@@ -123,7 +123,7 @@ Tipp: Erscheint nicht sofort eine Antwort auf den "AT" Befehl, kann eine erneute
 
 ## Mit PPP einen IP-Datenkanal öffnen
 
-Um eine IP-Adresse vom Mobilfunkprovider zu bekommen, muss eine PPP-Anmeldung durchgeführt werden. Wir nutzen eine Telekom M2M (Machine-to-mMchine) SIM Karte, welche das Telekom NB-IoT Netz unterstützt. Die PPP-Informationen, die im folgenden genannt werden, passen auf das M2M Netz der Telekom und möglicherweise auch auf das einiger Reseller. Für andere Anbieter müssen APN oder evtl. auch mehr Konfigurationsparameter angepasst werden. 
+Um eine IP-Adresse vom Mobilfunkprovider zu bekommen, muss eine PPP-Anmeldung durchgeführt werden. Wir nutzen eine Telekom M2M (Machine-to-Machine) SIM Karte, welche das Telekom NB-IoT Netz unterstützt. Die PPP-Informationen, die im folgenden genannt werden, passen auf das M2M Netz der Telekom und möglicherweise auch auf das einiger Reseller. Für andere Anbieter müssen APN oder evtl. auch mehr Konfigurationsparameter angepasst werden. 
 
 Die PPP-Verbindung stellen wir über den PPP Daemon `pppd` her, der wie folgt installiert wird: 
 
@@ -200,7 +200,7 @@ Nun, da beide Konfigurationsdateien fertiggestellt sind, können wir das Modem z
 
 	sudo pppd call telekomM2M
 
-Der PPP Daemon versucht nun, sich am Netzwerk anzumelden. Hat er Erfolg, bezieht er vom PPP Server eine IP-Adresse und andere Informationenn über eine mobile Datenverbindung. Eine neue Netzwerkschnittstelle `ppp0` wird im Hintergrund eingerichtet. In einem zweiten Konsolenfenster kann dies nachvollzogen werden:
+Der PPP Daemon versucht nun, sich am Netzwerk anzumelden. Hat er Erfolg, bezieht er vom PPP Server eine IP-Adresse und andere Informationen über eine mobile Datenverbindung. Eine neue Netzwerkschnittstelle `ppp0` wird im Hintergrund eingerichtet. In einem zweiten Konsolenfenster kann dies nachvollzogen werden:
 
 ```
 pi@raspberrypi:~ $ ip addr
@@ -216,7 +216,7 @@ Die (private) IP-Adresse `10.155.22.50` liegt am Interface an und kann ab sofort
 
 	ping -I ppp0 1.1.1.1
 
-**Falls nicht sofort Pings durchkommen: Keine Sorge!** Das NB-IoT M2M Netz ist nicht auf Latenz optimiert. An unserem Standort dauert es ca 7 Sekunden, bis die ersten Datenpakete zurückgekommen sind. Mit jedem Datenpaket wird die Latenz dann langsam besser, bis wir uns gut 100 ms annähern.
+**Falls nicht sofort Pings durchkommen: Keine Sorge!** Das NB-IoT M2M Netz ist nicht auf Latenz optimiert. An unserem Standort dauert es ca. 7 Sekunden, bis die ersten Datenpakete zurückgekommen sind. Mit jedem Datenpaket wird die Latenz dann langsam besser, bis wir uns gut 100 ms annähern.
 
 ```
 pi@raspberrypi:~ $ ping -I ppp0 1.1.1.1
@@ -325,7 +325,7 @@ Der PPP Daemon kann selbstverständlich auch über ein Systemd "start" Kommando 
 
 ## Ein Timing-Problem
 
-Während unserer Experimente mit Waveshare's SIM7070G-basierten Mobilfunkmodul sind wir auf ein Timing-Problem getoßen. Wir könnten es lösen, aber es war nicht trivial zu finden, daher wollen wir kurz darauf eingehen. 
+Während unserer Experimente mit Waveshare's SIM7070G-basierten Mobilfunkmodul sind wir auf ein Timing-Problem gestoßen. Wir könnten es lösen, aber es war nicht trivial zu finden, daher wollen wir kurz darauf eingehen. 
 
 ### Symptome
 
@@ -354,9 +354,9 @@ Da die ChatScript Syntax keinen "sleep" Befehl oder ähnliches zu kennen scheint
 'OK' AT
 ```
 
-Und tatsächlich - nun konnten wir auch über die native Serial-Schnittstelle mit dem Modem kommunizieren - ganz ohne vorheriges Aufschalten via Minicom. Der PPP-Daemon lieft direkt nach dem Boot. 
+Und tatsächlich - nun konnten wir auch über die native Serial-Schnittstelle mit dem Modem kommunizieren - ganz ohne vorheriges Aufschalten via Minicom. Der PPP-Daemon lief direkt nach dem Boot. 
 
-Wieso hat es aber über die USB-Serial Verbindung tadellos funktioniert? Wir vermuten, dass die Umwandlung von und zu USB genug Verzögerung in das System einführt, sodass das Timing-Problem in diesem Fall nicht auftritt. 
+Wieso hat es aber über die USB-Serial Verbindung tadellos funktioniert? Wir vermuten, dass die Umwandlung von und zu USB genug Verzögerung im System verursacht, sodass das Timingproblem in diesem Fall nicht auftritt. 
 
 
 
@@ -481,7 +481,7 @@ Upload-Test:
 
 	ssh -o ProxyCommand='pv -qL 9K | nc %h %p | pv -qL 9K' user@target-machine
 
-Zusammenfessend lässt sich aber sagen, dass die Datenrate für die oben genannten Zwecke ausreichen ist. Dank [Wireguard](https://www.wireguard.com/)'s schlankem VPN Protokoll sind wir sogar in der Lage, verhältnismäßig latenzarme Verbindungen zu unserem [Management VPN](/posts/vpn-firewall-shorewall/) herzustellen. Wir sind gespannt, wie sich das System in ersten Feldversuchen schlagen wird.
+Zusammenfassend lässt sich aber sagen, dass die Datenrate für die oben genannten Zwecke ausreichen ist. Dank [Wireguard](https://www.wireguard.com/)'s schlankem VPN Protokoll sind wir sogar in der Lage, verhältnismäßig latenzarme Verbindungen zu unserem [Management VPN](/posts/vpn-firewall-shorewall/) herzustellen. Wir sind gespannt, wie sich das System in ersten Feldversuchen schlagen wird.
 
 ---
 
