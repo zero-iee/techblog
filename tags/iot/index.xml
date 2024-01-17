@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>iot on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/iot/</link><description>ZERO GmbH Tech Blog (iot)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Wed, 17 Jan 2024 10:00:00 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/iot/index.xml" rel="self" type="application/rss+xml"/><item><title>Raspberry Pi mit Waveshare NB-IoT HAT / Simcom SIM7070G Modem zum Internet verbinden</title><link>https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</link><pubDate>Wed, 17 Jan 2024 10:00:00 +0100</pubDate><guid>https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</guid><description>&lt;p>Wir haben uns das &amp;ldquo;Waveshare SIM7070G Cat-M/NB-IoT/GPRS HAT&amp;rdquo; für das Raspberry Pi genauer angesehen und in Betrieb genommen. Dabei haben wir verschiedene Fallstricke aufgedeckt und beschreiben im Folgenden, wie wir das NB-IoT Modem eingerichtet haben, um einen unserer &lt;a href="https://www.zero-iee.com/de/products/">#AMPS Nodes&lt;/a> mit dem Internet zu verbinden.&lt;/p>
+&lt;ul>
+&lt;li>Hardware:
+&lt;ul>
+&lt;li>Raspberry Pi 4 B&lt;/li>
+&lt;li>Mobilfunk-HAT: &lt;a href="https://www.waveshare.com/wiki/SIM7070G_Cat-M/NB-IoT/GPRS_HAT">Waveshare SIM7070G Cat-M/NB-IoT/GPRS HAT&lt;/a>&lt;/li>
+&lt;li>SIM-Karte: Telekom M2M&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Software: Raspbian 12 &amp;ldquo;Bookworm&amp;rdquo;&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="images/waveshare-raspi.webp" alt="Animated Webp Image of the blinking Waveshare module attached to a Raspi">&lt;/p>
+&lt;h2 id="modem-an-raspberry-pi-anschließen" >Modem an Raspberry Pi anschließen
+&lt;span>
+&lt;a href="#modem-an-raspberry-pi-anschlie%c3%9fen">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Das Modem wird - wie jedes andere HAT-Modul über den Raspberry Pin-Header mit dem Raspberry Pi 4 B verbunden. Zusätzlich haben wir das Modul über das mitgelieferte USB-Kabel mit dem Raspberry Pi verbunden, um in einem ersten Schritt zu überprüfen, ob die serielle Konsole wie erwartet funktioniert.&lt;/p>
+&lt;p>&lt;em>Auf das USB-Kabel kann später verzichtet werden!&lt;/em>&lt;/p>
+&lt;h2 id="das-modem-mit-strom-versorgen" >Das Modem mit Strom versorgen
+&lt;span>
+&lt;a href="#das-modem-mit-strom-versorgen">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Offenbar ist das Mobilfunkmodem zu einem der GPIO Pins des Raspberry Pis verbunden. Indem der GPIO Pin 4 angesteuert wird, wird das Modem ein- oder ausgeschaltet. Nach dem Start sollte der Pin erst einmal auf einen Low-Pegel geschaltet werden, sodass (bedingt durch einen NPN-Transistor am Modul) am SimCom Modem ein High-Pegel anliegt. Der High-Pegel sollte am Eingang dauerhaft anliegen, wenn &lt;em>keine&lt;/em> Aktion gewünscht wird. Wird hingegen eine Ein- oder Ausschaltaktion gewünscht, muss an dem SimCom Modem mindestens für eine Sekunde (einschalten) bzw. 1,2 Sekunden (ausschalten) ein Low-Pegel anliegen, bevor zurück auf einen High-Pegel gewechselt wird.&lt;/p>
+&lt;p>Das initiale Schalten auf den High-Pegel kann so durchgeführt werden:&lt;/p>
+&lt;pre>&lt;code>echo &amp;quot;4&amp;quot; &amp;gt; /sys/class/gpio/export
+sleep 0.1
+echo &amp;quot;out&amp;quot; &amp;gt; /sys/class/gpio/gpio4/direction
+echo &amp;quot;0&amp;quot; &amp;gt; /sys/class/gpio/gpio4/value
+&lt;/code>&lt;/pre>
+&lt;p>&lt;em>Erinnerung: &amp;ldquo;0&amp;rdquo; bewirkt einen Low-Pegel am NPN-Transistor und daher einen invertierten Pegel &amp;ldquo;high&amp;rdquo; am Modem!&lt;/em>&lt;/p>
+&lt;p>Diese Kommandofolge wird in die Datei &lt;code>/etc/rc.local&lt;/code> vor die &lt;code>exit 0&lt;/code> Anweisung gepackt und somit nach jedem Boot einmal ausgeführt. Standardmäßig sollte das Modem nach der Versorgung mit Strom starten.&lt;/p>
+&lt;p>Wenn das Modem explizit ein- oder ausgeschaltet werden soll, muss der Eingang - wie bereits erwähnt - am Modem für mindestens 1.2 Sekunden auf einen Low-Pegel gezogen werden. Das erreichen wir durch einen kurzen High-Pegel an den Moduleingängen.&lt;/p>
+&lt;p>Zum Umschalten der Stromversorgung legen wir ein Script &lt;code>/home/pi/powertoggle.sh&lt;/code> an, das die folgende Sequenz als Inhalt hat:&lt;/p>
+&lt;pre tabindex="0">&lt;code>#!/bin/bash
+echo &amp;#34;1&amp;#34; &amp;gt; /sys/class/gpio/gpio4/value
+sleep 1.2
+echo &amp;#34;0&amp;#34; &amp;gt; /sys/class/gpio/gpio4/value
+&lt;/code>&lt;/pre>&lt;p>Wird das Script 1x ausgeführt, startet das Modem. Wird es nochmal ausgeführt, wird es heruntergefahren.&lt;/p>
+&lt;p>Normalerweise muss dieses &lt;code>powertoggle.sh&lt;/code> Script nach dem Start nicht ausgeführt werden, da das Modem von sich aus startet. Sollte allerdings keine serielle Verbindung zustande kommen, kann es helfen, die Stromversorgung einmal umzuschalten, indem das Script ausgeführt wird.&lt;/p>
+&lt;h2 id="serielle-verbindung-zum-modem-prüfen" >Serielle Verbindung zum Modem prüfen
+&lt;span>
+&lt;a href="#serielle-verbindung-zum-modem-pr%c3%bcfen">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Die Kommunikation mit dem Mobilfunkmodem läuft ausschließlich über eine serielle Verbindung, welche innerhalb von USB bereitgestellt wird. Die Bandbreite der Schnittstelle ist sehr begrenzt, aber im NB-IoT Anwendungsfall völlig ausreichend, denn die zur Verfügung stehende Bandbreite im Mobilfunknetz ist ohnehin minimal und eignet sich nur zur Übermittlung kleinster Datenmengen (Statusinformationen, Sensordaten, Kommandos, &amp;hellip;).&lt;/p>
+&lt;p>Unser Modem identifiziert sich am USB-Port mit USB Vendor ID &lt;code>1e0e&lt;/code> und Product ID &lt;code>9206&lt;/code>:&lt;/p>
+&lt;pre tabindex="0">&lt;code>pi@raspberrypi:~ $ lsusb
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 001 Device 020: ID 1e0e:9206 Qualcomm / Option SimTech SIM7080 &amp;lt;------ SIM7070 Modem
+Bus 001 Device 002: ID 2109:3431 VIA Labs, Inc. Hub
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+&lt;/code>&lt;/pre>&lt;p>Laut Datenblatt (&lt;a href="https://www.simcom.com/product/SIM7070G.html">SIM7070_SIM7080_SIM7090 Series_Linux_Application Note_V1.02&lt;/a>) bietet das Modem über USB also folgende Schnittstellen an:&lt;/p>
+&lt;ul>
+&lt;li>0: (USB serial): Diagnostic interface&lt;/li>
+&lt;li>1: (USB serial): GPS NMEA interface&lt;/li>
+&lt;li>2: (USB serial): AT port interface&lt;/li>
+&lt;li>3: (USB serial): QFLOG interface&lt;/li>
+&lt;li>4: (USB serial): DAM interface&lt;/li>
+&lt;li>5: (USB serial): Modem port interface&lt;/li>
+&lt;/ul>
+&lt;p>Je nach Product ID kann sich die Portzuordnung unterscheiden - ein Blick ins Datenblatt kann sich daher lohnen. Allerdings befindet sich die für diesen Artikel wichtigste Schnittstelle immer an Position 2: Die AT-Port Schnittstelle.&lt;/p>
+&lt;p>Wie im Mobilfunkbereich üblich, wird auch dieses Mobilfunkmodem über sog. AT-Kommandos auf einer serielle Schnittstelle angesteuert. Der Linux Kernel ab Mainline Kernel 5.8.10 enthält die &lt;a href="https://elixir.bootlin.com/linux/v5.8.10/source/drivers/usb/serial/option.c#L1827">notwendigen Anpassungen&lt;/a> im USB Options Treiber, welcher die zuvor erwähnten seriellen Schnittstellen über USB bereitstellt.&lt;/p>
+&lt;p>Um die AT-Schnittstelle zu testen, genügt es, mittels Minicom eine Verbindung herzustellen. Dazu wird Minicom installiert:&lt;/p>
+&lt;pre>&lt;code>sudo apt install minicom
+&lt;/code>&lt;/pre>
+&lt;p>&amp;hellip; und gestartet:&lt;/p>
+&lt;pre>&lt;code>sudo minicom -b 115200 -D /dev/ttyUSB2
+&lt;/code>&lt;/pre>
+&lt;p>Danach kann über die Eingabe von&lt;/p>
+&lt;pre>&lt;code>AT
+&lt;/code>&lt;/pre>
+&lt;p>geprüft werden, ob AT-Kommandos akzeptiert werden. So stellen wir sicher, dass wir mit der korrekten Konsole sprechen. Kommt ein &amp;ldquo;OK&amp;rdquo; zurück, ist alles in Ordnung und das Modem reagiert auf unsere Kommandos.&lt;/p>
+&lt;p>Über &lt;code>STRG+A&lt;/code> und &lt;code>X&lt;/code> kann Minicom wieder verlassen werden.&lt;/p>
+&lt;h2 id="auf-das-raspberry-pi-eigene-serial-interface-umstellen" >Auf das Raspberry Pi-eigene Serial Interface umstellen
+&lt;span>
+&lt;a href="#auf-das-raspberry-pi-eigene-serial-interface-umstellen">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Wenn wir sicher sind, dass die USB-basierte serielle Kommunikation mit dem Modem funktioniert, können wir auch auf das Raspberry Pi-eigene Serial Interface &lt;code>ttyS0&lt;/code> umstellen. Das bietet den großen Vorteil, dass keine USB-Verbindung mehr zwischen Raspi und dem Waveshare-Modul bestehen muss: Das USB-Kabel kann entfernt werden.&lt;/p>
+&lt;p>Auf dem Raspberry Pi muss die serielle Konsole noch aktiviert und passend eingestellt werden.
+Dazu im &lt;code>raspi-config&lt;/code> Tool &amp;ldquo;03 Interface options&amp;rdquo; und dann &amp;ldquo;I5 Serial Port&amp;rdquo; wählen. Einstellungen:&lt;/p>
+&lt;ul>
+&lt;li>Login Shell: NO&lt;/li>
+&lt;li>Serial Port Hardware enabled: YES&lt;/li>
+&lt;/ul>
+&lt;p>Wichtig: Bei &amp;ldquo;Login shell&amp;rdquo; muss &lt;code>NO&lt;/code> gewählt werden. Andernfalls können Kommunikationsprobleme mit dem Modem auftreten. Zum Schluss das Raspi einmal neu starten, um die Einstellungen zu aktivieren.&lt;/p>
+&lt;p>Von nun an sollte auch eine serielle Kommunikation über die &lt;code>/dev/ttyS0&lt;/code> Schnittstelle möglich sein. Wie im Fall oben kann erneut Minicom genutzt werden, um die Verbindung zu überprüfen.&lt;/p>
+&lt;p>Tipp: Erscheint nicht sofort eine Antwort auf den &amp;ldquo;AT&amp;rdquo; Befehl, kann eine erneute Eingabe zum Erfolg führen. Dazu mehr im Abschnitt &lt;em>&amp;ldquo;Modem regiert nicht: Ein Auto Bauding-Problem&amp;rdquo;&lt;/em>.&lt;/p>
+&lt;h2 id="mit-ppp-einen-ip-datenkanal-öffnen" >Mit PPP einen IP-Datenkanal öffnen
+&lt;span>
+&lt;a href="#mit-ppp-einen-ip-datenkanal-%c3%b6ffnen">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Um eine IP-Adresse vom Mobilfunkprovider zu bekommen, muss eine PPP-Anmeldung durchgeführt werden. Wir nutzen eine Telekom M2M (Machine-to-Machine) SIM Karte, welche das Telekom NB-IoT Netz unterstützt. Die PPP-Informationen, die im folgenden genannt werden, passen auf das M2M Netz der Telekom und möglicherweise auch auf das einiger Reseller. Für andere Anbieter müssen APN oder evtl. auch mehr Konfigurationsparameter angepasst werden.&lt;/p>
+&lt;p>Die PPP-Verbindung stellen wir über den PPP Daemon &lt;code>pppd&lt;/code> her, der wie folgt installiert wird:&lt;/p>
+&lt;pre>&lt;code>sudo apt install ppp
+&lt;/code>&lt;/pre>
+&lt;p>An zwei Stellen muss der PPP Daemon konfiguriert werden. Beginnen wir mit der Providerkonfiguration, die in &lt;code>/etc/ppp/peers/telekomM2M&lt;/code> angelegt wird:&lt;/p>
+&lt;pre tabindex="0">&lt;code>user &amp;#34;m2m&amp;#34;
+connect &amp;#34;/usr/sbin/chat -v -f /etc/chatscripts/telekomM2M -T internet.m2mportal.de&amp;#34;
+# Serial device to which the modem is connected.
+/dev/ttyS0
+# Speed of the serial line.
+115200
+nocrtscts
+debug
+nodetach
+ipcp-accept-local
+ipcp-accept-remote
+# Assumes that your IP address is allocated dynamically by the ISP.
+noipdefault
+# Try to get the name server addresses from the ISP.
+usepeerdns
+# Use this connection as the default route.
+defaultroute
+# Makes pppd &amp;#34;dial again&amp;#34; when the connection is lost.
+persist
+maxfail 0
+holdoff 5
+# Do not ask the remote to authenticate.
+noauth
+&lt;/code>&lt;/pre>&lt;ul>
+&lt;li>&lt;code>/etc/chatscripts/telekomM2M&lt;/code> ist der Name des &amp;ldquo;Chat-Scripts&amp;rdquo; für die Kommunikation mit dem Modem&lt;/li>
+&lt;li>&lt;code>internet.m2mportal.de&lt;/code> ist der APN-Name des M2M-Netzwerks&lt;/li>
+&lt;/ul>
+&lt;p>Da das Chat-Script &lt;code>/etc/chatscripts/telekomM2M&lt;/code> noch nicht existiert, wird es nun angelegt:&lt;/p>
+&lt;pre tabindex="0">&lt;code>ABORT &amp;#34;BUSY&amp;#34;
+ABORT &amp;#34;VOICE&amp;#34;
+ABORT &amp;#34;NO CARRIER&amp;#34;
+ABORT &amp;#34;NO DIALTONE&amp;#34;
+ABORT &amp;#34;NO DIAL TONE&amp;#34;
+ABORT &amp;#34;NO ANSWER&amp;#34;
+ABORT &amp;#34;DELAYED&amp;#34;
+ABORT &amp;#34;ERROR&amp;#34;
+TIMEOUT 5
+&amp;#39;&amp;#39; AT
+&amp;#39;OK&amp;#39; AT
+OK ATE1
+OK AT+CGDCONT=1,&amp;#34;IPV4V6&amp;#34;,&amp;#34;\T&amp;#34;,&amp;#34;&amp;#34;,0,0
+OK ATD*99#
+TIMEOUT 22
+CONNECT &amp;#39;&amp;#39;
+&lt;/code>&lt;/pre>&lt;p>Wie auch bei der vorherigen Konfigurationsdatei: Dieses Chat-Script funktioniert möglicherweise nur für das &amp;ldquo;Telekom M2M&amp;rdquo; Netz der Deutschen Telekom. Ob es so oder so ähnlich auch für andere Anbieter funktioniert, können wir derzeit nicht sicher sagen. Womöglich kann es aber auch für andere Provider wie z.B. Vodafone eingesetzt werden.&lt;/p>
+&lt;p>&lt;em>Übrigens: Wie haben in dieses Script eine zweite &amp;ldquo;AT&amp;rdquo; Abfrage eingebaut, um ein Timing-Problem zu vermeiden. Dazu später mehr unter &amp;ldquo;Ein Timing-Problem&amp;rdquo;.&lt;/em>&lt;/p>
+&lt;p>Nun, da beide Konfigurationsdateien fertiggestellt sind, können wir das Modem zum Leben erwecken. Stellt sicher, dass die serielle Konsole &lt;code>/dev/ttyS0&lt;/code> nicht mehr von Minicom oder einem ähnlichen Terminal verwendet wird und führt folgendes Kommando auf dem Raspberry Pi aus:&lt;/p>
+&lt;pre>&lt;code>sudo pppd call telekomM2M
+&lt;/code>&lt;/pre>
+&lt;p>Der PPP Daemon versucht nun, sich am Netzwerk anzumelden. Hat er Erfolg, bezieht er vom PPP Server eine IP-Adresse und andere Informationen über eine mobile Datenverbindung. Eine neue Netzwerkschnittstelle &lt;code>ppp0&lt;/code> wird im Hintergrund eingerichtet. In einem zweiten Konsolenfenster kann dies nachvollzogen werden:&lt;/p>
+&lt;pre tabindex="0">&lt;code>pi@raspberrypi:~ $ ip addr
+[...]
+22: ppp0: &amp;lt;POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP&amp;gt; mtu 1500 qdisc pfifo_fast state UNKNOWN group default qlen 3
+link/ppp
+inet 10.155.22.50 peer 10.64.64.64/32 scope global ppp0
+valid_lft forever preferred_lft forever
+&lt;/code>&lt;/pre>&lt;p>Die (private) IP-Adresse &lt;code>10.155.22.50&lt;/code> liegt am Interface an und kann ab sofort für die Kommunikation zu anderen Netzwerkteilnehmern oder ins Internet verwendet werden:&lt;/p>
+&lt;pre>&lt;code>ping -I ppp0 1.1.1.1
+&lt;/code>&lt;/pre>
+&lt;p>&lt;strong>Falls nicht sofort Pings durchkommen: Keine Sorge!&lt;/strong> Das NB-IoT M2M Netz ist nicht auf Latenz optimiert. An unserem Standort dauert es ca. 7 Sekunden, bis die ersten Datenpakete zurückgekommen sind. Mit jedem Datenpaket wird die Latenz dann langsam besser, bis wir uns gut 100 ms annähern.&lt;/p>
+&lt;pre tabindex="0">&lt;code>pi@raspberrypi:~ $ ping -I ppp0 1.1.1.1
+PING 1.1.1.1 (1.1.1.1) from 10.155.22.50 ppp0: 56(84) bytes of data.
+64 bytes from 1.1.1.1: icmp_seq=2 ttl=51 time=7002 ms
+64 bytes from 1.1.1.1: icmp_seq=3 ttl=51 time=5978 ms
+64 bytes from 1.1.1.1: icmp_seq=4 ttl=51 time=5337 ms
+64 bytes from 1.1.1.1: icmp_seq=5 ttl=51 time=4313 ms
+64 bytes from 1.1.1.1: icmp_seq=8 ttl=51 time=2297 ms
+64 bytes from 1.1.1.1: icmp_seq=9 ttl=51 time=2316 ms
+64 bytes from 1.1.1.1: icmp_seq=10 ttl=51 time=1315 ms
+64 bytes from 1.1.1.1: icmp_seq=11 ttl=51 time=433 ms
+64 bytes from 1.1.1.1: icmp_seq=12 ttl=51 time=392 ms
+64 bytes from 1.1.1.1: icmp_seq=13 ttl=51 time=393 ms
+64 bytes from 1.1.1.1: icmp_seq=14 ttl=51 time=231 ms
+64 bytes from 1.1.1.1: icmp_seq=15 ttl=51 time=429 ms
+64 bytes from 1.1.1.1: icmp_seq=16 ttl=51 time=268 ms
+64 bytes from 1.1.1.1: icmp_seq=17 ttl=51 time=347 ms
+64 bytes from 1.1.1.1: icmp_seq=18 ttl=51 time=546 ms
+64 bytes from 1.1.1.1: icmp_seq=19 ttl=51 time=163 ms
+64 bytes from 1.1.1.1: icmp_seq=20 ttl=51 time=282 ms
+64 bytes from 1.1.1.1: icmp_seq=21 ttl=51 time=283 ms
+64 bytes from 1.1.1.1: icmp_seq=22 ttl=51 time=139 ms
+64 bytes from 1.1.1.1: icmp_seq=23 ttl=51 time=116 ms
+64 bytes from 1.1.1.1: icmp_seq=24 ttl=51 time=135 ms
+64 bytes from 1.1.1.1: icmp_seq=25 ttl=51 time=154 ms
+64 bytes from 1.1.1.1: icmp_seq=26 ttl=51 time=173 ms
+^C
+--- 1.1.1.1 ping statistics ---
+27 packets transmitted, 23 received, 14.8148% packet loss, time 26180ms
+rtt min/avg/max/mdev = 116.182/1436.578/7001.561/2066.895 ms, pipe 7
+&lt;/code>&lt;/pre>&lt;p>In der &lt;code>/etc/resolv.conf&lt;/code> sind die beiden vom PPP-Daemon bezogenen DNS-Server aufgelistet:&lt;/p>
+&lt;pre tabindex="0">&lt;code>pi@raspberrypi:~ $ cat /etc/resolv.conf
+nameserver 10.74.210.210
+nameserver 10.74.210.211
+&lt;/code>&lt;/pre>&lt;p>Somit ist auch eine Namensauflösung über Telekom DNS-Server verfügbar.&lt;/p>
+&lt;p>Informationen wie zugeordnete IP-Adresse, DNS-Server und Gateway (&amp;ldquo;remote IP address&amp;rdquo;) werden außerdem in die ppp Daemon Logausgabe geschrieben:&lt;/p>
+&lt;pre tabindex="0">&lt;code>[...]
+local IP address 10.155.22.50
+remote IP address 10.64.64.64
+primary DNS address 10.74.210.210
+secondary DNS address 10.74.210.211
+[...]
+&lt;/code>&lt;/pre>&lt;p>&amp;hellip; was leider nicht für die öffentliche IPv6 Adresse gilt, die dem Modem zugeteilt wird: Diese findet sich nur in der Ausgabe von &lt;code>ip addr show dev ppp0&lt;/code> wieder. Dennoch ist IPv6 ebenso verfügbar:&lt;/p>
+&lt;pre>&lt;code>ping -I ppp0 2001:4860:4860::8888
+&lt;/code>&lt;/pre>
+&lt;p>Wer nun das M2M Netzwerk für seinen gesamten Internetverkehr verwenden will, kann die Default-Route darauf umstellen:&lt;/p>
+&lt;pre tabindex="0">&lt;code>sudo ip route del default
+sudo ip -6 route del default
+sudo ip route add default via 10.64.64.64 dev ppp0
+sudo ip -6 route add default via fe80::1:2:47b1:3706 dev ppp0
+&lt;/code>&lt;/pre>&lt;p>Die IPv4-Gatewayadresse &lt;code>10.64.64.64&lt;/code> wurde dem ppp Log entnommen - das IPv6 Pendant &lt;code>fe80::1:2:47b1:3706&lt;/code> wurde den IPv6 Routinginformationen mittels &lt;code>ip -6 route&lt;/code> entnommen.&lt;/p>
+&lt;p>&lt;strong>Übrigens&lt;/strong>: der PPP-Daemon scheint relativ rücksichtlos mit den Resolvereinträgen in &lt;code>/etc/resolv.conf&lt;/code> umzugehen und überschreibt einfach vorhandene Einträge. Belässt man die Standardroute beispielsweise auf dem Ethernet-Interface, kann es sein, dass kein DNS-Resolver mehr erreichbar ist und Namensauflösungen fehlschlagen. Eine nachträgliche Korrektur der &lt;code>resolv.conf&lt;/code> schafft in diesem Fall Abhilfe.&lt;/p>
+&lt;h2 id="autostart-für-den-ppp-daemon" >Autostart für den PPP Daemon
+&lt;span>
+&lt;a href="#autostart-f%c3%bcr-den-ppp-daemon">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Standardmäßig bringt das ppp-Paket in Debian keinen Systemd Service für den PPP Daemon mit - aber kein Problem! Die Paketmaintainer von Arch Linux haben ein passendes &lt;a href="https://gitlab.archlinux.org/archlinux/packaging/packages/ppp/-/blob/main/ppp.systemd?ref_type=heads">Service-File erstellt&lt;/a>:&lt;/p>
+&lt;pre tabindex="0">&lt;code>[Unit]
+Description=PPP link to %I
+Before=network.target
+[Service]
+Type=notify
+ExecStart=/usr/sbin/pppd call %I nodetach nolog up_sdnotify
+[Install]
+WantedBy=multi-user.target
+&lt;/code>&lt;/pre>&lt;p>Dieses können wir unter &lt;code>/etc/systemd/system/ppp@.service&lt;/code> speichern und den Daemon in den Boot-Autostart aufnehmen:&lt;/p>
+&lt;pre>&lt;code>sudo systemctl daemon-reload
+sudo systemctl enable ppp@telekomM2M.service
+&lt;/code>&lt;/pre>
+&lt;p>&lt;code>telekomM2M&lt;/code> ist hier der Name der Datei &lt;code>/etc/ppp/peers/telekomM2M&lt;/code>. Der Teil muss entsprechend angepasst werden, wenn die PP Konfigurationsdatei anders benannt ist. Dementsprechend ließe sich bei der Verwendung mehrerer Provider-Configs beispielsweise auch ein &lt;code>sudo systemctl enable ppp@provider2.service&lt;/code> aufrufen.&lt;/p>
+&lt;p>Der PPP Daemon kann selbstverständlich auch über ein Systemd &amp;ldquo;start&amp;rdquo; Kommando gestartet werden:&lt;/p>
+&lt;pre>&lt;code>sudo systemctl start ppp@telekomM2M.service
+&lt;/code>&lt;/pre>
+&lt;h2 id="modem-regiert-nicht-ein-auto-bauding-problem" >Modem regiert nicht: Ein Auto Bauding-Problem
+&lt;span>
+&lt;a href="#modem-regiert-nicht-ein-auto-bauding-problem">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Während unserer Experimente mit Waveshare&amp;rsquo;s SIM7070G-basierten Mobilfunkmodul sind wir auf ein Timing-Problem gestoßen. Wir könnten es lösen, aber es war nicht trivial zu finden, daher wollen wir kurz darauf eingehen.&lt;/p>
+&lt;h3 id="symptome" >Symptome
+&lt;span>
+&lt;a href="#symptome">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h3>&lt;p>Während der ersten Schritte mit dem Modul haben wir nicht das native serielle Interface genutzt, sondern sind den Umweg über den USB-to-Serial Adapter gegangen. Also Raspi =&amp;gt; USB-Anschluss des Moduls. Mit diesem Setup funktionierte der PPP-Daemon einwandfrei und wir konnten eine Internetverbindung herstellen.&lt;/p>
+&lt;p>Später stellten wir auf die native serielle Verbindung um - also ohne den USB-Anschluss - und nutzten unter Linux statt &lt;code>/dev/ttyUSB2&lt;/code> das &lt;code>/dev/ttyS0&lt;/code> Interface, um die Kommunikation über den Raspi Header herzustellen. Allerdings konnte der PPP-Daemon ab diesem Zeitpunkt keine Verbindung mehr herstellen und brach mit einem Timeout ab.&lt;/p>
+&lt;p>Unter einer Bedingung konnten wir das Modem in diesem Fall dennoch zur Kommunikation bewegen: Nämlich dann, wenn wir uns vor Ausführung des PPP-Daemons mit einer seriellen Konsole (z.B. Minicom) auf die Schnittstellen aufschalteten und einmal oder mehrmals das &amp;ldquo;AT&amp;rdquo; Kommando ausführen, um ein &amp;ldquo;OK&amp;rdquo; zurückzubekommen. Das Modem reagierte und bei einem erneuten Start des PPP-Daemons konnte schließlich auch eine Verbindung hergestellt werden. Das Aufschalten mit einem Terminal-Emulator schien also etwas an der Verbindung zurechtzurücken.&lt;/p>
+&lt;h3 id="die-ursache" >Die Ursache
+&lt;span>
+&lt;a href="#die-ursache">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h3>&lt;p>Durch systematisches Ausprobieren und Fixieren der Baudrate am Modem konnten wir schließlich die Ursache finden: Das &amp;ldquo;Auto-Baud&amp;rdquo; Feature des Modems - allem Anschein nach in Verbindung mit einem Timing-Problem.&lt;/p>
+&lt;p>Das Modem ist ab Werk so eingestellt, dass es keine fest definierte Baudrate akzeptiert, sondern so, dass es versucht, beim ersten &amp;ldquo;AT&amp;rdquo; Kommando die Baudrate selbst zu erkennen und zu setzen. Stellt man sein Minicom-Tool also beispielsweise auf eine Baudrate von 115200 ein und schaltet sich auf das serielle Interface auf, führt die Ausführung von &amp;ldquo;AT&amp;rdquo; dazu, dass sich das Modem ebenfalls auf 115200 Baud einstellt. Dies erklärt auch, wieso wir nach so einem Schritt den PPP-Daemon niemals dazu bewegen konnten, mit einer anderen Baudrate zu arbeiten. Die erste Verbindung und ihre Baudrate sind nach einem Absetzen von &amp;ldquo;AP&amp;rdquo; ausschlaggebend.&lt;/p>
+&lt;p>Das erste, was das Modem von unserem Raspi mitbekommen musste, war also ein &amp;ldquo;AT&amp;rdquo; String, um seine eigene Baudrate passend konfigurieren zu können. Wir haben im nächsten Schritt unser Chat-Script geprüft und festgestellt, dass das erste Kommando tatsächlich ein &amp;ldquo;AT&amp;rdquo; Kommando war. Alles in Ordnung also?&lt;/p>
+&lt;p>Nicht ganz. Wir haben schließlich herausgefunden, dass wir an der Stelle möglicherweise in ein Timingproblem laufen. Denn die Dokumentation zu einem anderen Mobilfunkmodul des gleichen Herstellers SimCom erwähnt zum Auto-Baud Feature, dass nach dem ersten &amp;ldquo;AT&amp;rdquo; eine Weile gewartet werden sollte, bevor weitere Kommandos abgesetzt werden. Andernfalls könnten folgende Kommandos evtl. nicht mehr korrekt interpretiert werden.&lt;/p>
+&lt;h3 id="die-lösung" >Die Lösung
+&lt;span>
+&lt;a href="#die-l%c3%b6sung">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h3>&lt;p>Da die ChatScript Syntax keinen &amp;ldquo;sleep&amp;rdquo; Befehl oder ähnliches zu kennen scheint, haben wir kurzerhand eine zweite &amp;ldquo;AT&amp;rdquo; Abfrage hinzugefügt, um durch diese etwas Zeit zu gewinnen.&lt;/p>
+&lt;pre tabindex="0">&lt;code>&amp;#39;&amp;#39; AT
+&amp;#39;OK&amp;#39; AT
+&lt;/code>&lt;/pre>&lt;p>Und tatsächlich - nun konnten wir auch über die native Serial-Schnittstelle mit dem Modem kommunizieren - ganz ohne vorheriges Aufschalten via Minicom. Der PPP-Daemon lief direkt nach dem Boot.&lt;/p>
+&lt;p>Wieso hat es aber über die USB-Serial Verbindung tadellos funktioniert? Wir vermuten, dass die Umwandlung von und zu USB genug Verzögerung im System verursacht, sodass das Timingproblem in diesem Fall nicht auftritt.&lt;/p>
+&lt;h2 id="eine-bessere-lösung-für-das-power-management" >Eine bessere Lösung für das Power Management
+&lt;span>
+&lt;a href="#eine-bessere-l%c3%b6sung-f%c3%bcr-das-power-management">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Zu Beginn dieses Beitrags haben wir bereits beschrieben, dass sich das SIM7070G Modul über GPIO4 des Raspberry Pis ein- oder ausschalten lässt. Dabei haben wir allerdings unterschlagen, dass wir den Pin in unserem &lt;code>powertoggle.sh&lt;/code> Script immer für eine Sekunde auf einen High-Pegel schalten (resultierend in einem Low-Pegel am SIM7070G-Modem).&lt;/p>
+&lt;p>Tatsächlich offenbart das Datenblatt des Mobilfunkmodems folgendes:&lt;/p>
+&lt;ul>
+&lt;li>Low-Pegel für mindestens 1.0 Sekunde: Einschalten&lt;/li>
+&lt;li>Low-Pegel für mindestens 1.2 Sekunden: Ausschalten.&lt;/li>
+&lt;/ul>
+&lt;p>Wir können also nicht nur &amp;ldquo;umschalten&amp;rdquo; und einen möglicherweise unbekannten Ausgangszustand in sein Gegenteil umkehren, sondern durch präzises Timing beim Schalten gezielt einen &amp;ldquo;An&amp;rdquo;- oder &amp;ldquo;Aus&amp;rdquo;-Zustand herbeiführen.&lt;/p>
+&lt;p>Wir haben zunächst mit Bash-Befehlen experimentiert, aber relativ schnell festgestellt, dass das Timing der Bash-Shell zu ungenau ist, um zuverlässig ein- oder auszuschalten. Daher haben wir ein kleines Tool &lt;code>modemctl&lt;/code> in C implementiert, das &amp;ldquo;init&amp;rdquo;, &amp;ldquo;on&amp;rdquo; und &amp;ldquo;off&amp;rdquo; Argumente annehmen und den GPIO4 Ausgang des Raspis entsprechend präzise ansteuern kann:&lt;/p>
+&lt;p>Quellcode &lt;code>modemctl.c&lt;/code>:&lt;/p>
+&lt;pre tabindex="0">&lt;code>/*
+* modemctl: Controls Waveshare NB-IoT power state by controlling GPIO pin
+* Installing dependencies: sudo apt install pigpio
+* Compiling: gcc -o modemctl modemctl.c -l pigpio
+* Running: sudo ./modemctl init
+* sudo ./modemctl on
+* sudo ./modemctl off
+*/
+#include &amp;lt;stdio.h&amp;gt;
+#include &amp;lt;string.h&amp;gt;
+#include &amp;lt;pigpio.h&amp;gt;
+#define GPIO_PIN 4 // GPIO number of pin
+#define ON_TIME 1.0 // Hold time for turning on
+#define OFF_TIME 1.2 // Hold time for turning off
+int main(int argc, char *argv[]) {
+if (gpioInitialise() &amp;lt; 0) {
+fprintf(stderr, &amp;#34;pigpio initialisation failed\n&amp;#34;);
+return 1;
+}
+/* Set GPIO modes */
+gpioSetMode(GPIO_PIN, PI_OUTPUT);
+if (strcmp(argv[1], &amp;#34;init&amp;#34;) == 0) {
+printf(&amp;#34;Initialising NB-IoT module power state\n&amp;#34;);
+gpioWrite(GPIO_PIN, 0); /* Set pin to low to generate HIGH level on PWR input of module */
+} else if (strcmp(argv[1], &amp;#34;on&amp;#34;) == 0) {
+printf(&amp;#34;Turning NB-IoT module ON\n&amp;#34;);
+gpioWrite(GPIO_PIN, 1); /* Set GPIO4 to 1 for ON_TIME seconds */
+time_sleep(ON_TIME);
+gpioWrite(GPIO_PIN, 0);
+} else if (strcmp(argv[1], &amp;#34;off&amp;#34;) == 0) {
+printf(&amp;#34;Turning NB-IoT module OFF\n&amp;#34;);
+gpioWrite(GPIO_PIN, 1); /* Set GPIO4 to 1 for OFF_TIME seconds */
+time_sleep(OFF_TIME);
+gpioWrite(GPIO_PIN, 0);
+} else {
+printf(&amp;#34;Please provide \&amp;#34;on\&amp;#34; or \&amp;#34;off\&amp;#34; as an argument!\n&amp;#34;);
+}
+}
+&lt;/code>&lt;/pre>&lt;p>Das Programm wird via&lt;/p>
+&lt;pre>&lt;code>gcc -o modemctl modemctl.c -l pigpio
+&lt;/code>&lt;/pre>
+&lt;p>kompiliert und kann dann mit sudo gestartet werden, um das Modul zu schalten, z.B.&lt;/p>
+&lt;pre>&lt;code>sudo ./modemctl init
+sudo ./modemctl on
+&lt;/code>&lt;/pre>
+&lt;p>&amp;hellip; um das Modul einzuschalten.&lt;/p>
+&lt;p>Zu beachten ist, dass das Ein- und Ausschalten des Modems einige Sekunden dauern kann und die serielle Schnittstelle nicht unmittelbar danach zur Verfügung steht.&lt;/p>
+&lt;p>Am Blinken der &amp;ldquo;Net&amp;rdquo; LED am Modul kann das Status abgelesen werden:&lt;/p>
+&lt;ul>
+&lt;li>Kein Blinken: Ausgeschaltet&lt;/li>
+&lt;li>Langsames Blinken: Eingeschaltet, aber keine PPP-Verbindung / Datenübertragung&lt;/li>
+&lt;li>Schnelles Blinken (~ 800 Sekunden Zyklus): Eingeschaltet und Datenübertragung aktiv&lt;/li>
+&lt;/ul>
+&lt;p>Statt sich darauf zu verlassen, dass das Modem direkt nach dem Boot funktioniert &lt;em>- wir haben gegenteilige Erfahrungen gemacht -&lt;/em> können wir also anstelle des &lt;code>init.sh&lt;/code> Scriptes folgendes in die &lt;code>/etc/rc.local&lt;/code> aufnehmen:&lt;/p>
+&lt;pre>&lt;code>/home/pi/modemctl init
+/home/pi/modemctl on
+&lt;/code>&lt;/pre>
+&lt;p>Hiermit sollte das Modem beim Boot nun zuverlässig aktiviert werden. Das &lt;code>powertoggle.sh&lt;/code> Script wird nicht mehr benötigt.&lt;/p>
+&lt;h2 id="performance" >Performance
+&lt;span>
+&lt;a href="#performance">
+&lt;svg viewBox="0 0 28 23" height="100%" width="19" xmlns="http://www.w3.org/2000/svg">&lt;path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>&lt;/svg>
+&lt;/a>
+&lt;/span>
+&lt;/h2>&lt;p>Wie in dem vorher gezeigten ping-Output dargestellt, kann die Latenz der Netzwerkverbindung stark variieren. Wir haben an unserem Standort die Erfahrung gemacht, dass die Latenz zunächst bei einigen Sekunden liegt. Mit anhaltender Datenübertragung sinkt die Latenz aber auf knapp 200 ms. Selbstverständlich eignet sich die Verbindung daher nicht um Übertragen mittlerer oder größerer Datenmengen. Für unsere Anwendungsfälle ist die Verbindung allerdings völlig brauchbar:&lt;/p>
+&lt;ul>
+&lt;li>Rollout von Konfigurationsänderungen (SSH / Ansible)&lt;/li>
+&lt;li>Übertragung von Statusinformationen&lt;/li>
+&lt;li>Übertragung kleiner Firmwareupdates&lt;/li>
+&lt;li>Remote-SSH-Login zum Debugging&lt;/li>
+&lt;/ul>
+&lt;p>gping Test:&lt;/p>
+&lt;pre>&lt;code>gping -i ppp0 -s -n 1.0 -b 60 1.1.1.1
+&lt;/code>&lt;/pre>
+&lt;p>&lt;img src="images/gping.webp" alt="gping Test mit dem oben erwähnten Kommando: Graph zeigt Latenz über 60 Sekunden">&lt;/p>
+&lt;p>Download-Test mit:&lt;/p>
+&lt;pre>&lt;code>curl http://speedtest.tele2.net/1GB.zip -o /dev/null -m 60
+&lt;/code>&lt;/pre>
+&lt;p>Wir haben innerhalb eines Gebäudes und in Nähe eines Mobilfunkmasten 9,579 kByte/s (~77 kBit/s) im Download gemessen. Zeitspanne: 60 Sekunden.&lt;/p>
+&lt;p>Upload-Test:&lt;/p>
+&lt;pre>&lt;code>curl -T /dev/urandom http://speedtest.tele2.net/upload.php -O /dev/null -m 60
+&lt;/code>&lt;/pre>
+&lt;p>ähnliche bis leicht höhere Datenraten konnten wir auch im Upload erreichen. Allerdings ist uns wegen Verbindungsabbrüchen kein längerer, durchgängiger Upload-Vorgang gelungen. Die Aussagekraft des Tests ist daher zweifelhaft. Ursache für die Abbrüche ist möglicherweise eine Limitierung der zur Verfügung stehenden &amp;ldquo;Air Time&amp;rdquo; im NB-IoT Netz.&lt;/p>
+&lt;p>Übrigens: Wer (ungeachtet der Latenz) lokal simulieren will, wie sich eine SSH-Session bei der von uns gemessenen Datenübertragungsrate &amp;ldquo;anfühlt&amp;rdquo;, kann dazu folgendes Kommando verwenden:&lt;/p>
+&lt;pre>&lt;code>ssh -o ProxyCommand='pv -qL 9K | nc %h %p | pv -qL 9K' user@target-machine
+&lt;/code>&lt;/pre>
+&lt;p>Zusammenfassend lässt sich aber sagen, dass die Datenrate für die oben genannten Zwecke ausreichen ist. Dank &lt;a href="https://www.wireguard.com/">Wireguard&lt;/a>&amp;rsquo;s schlankem VPN Protokoll sind wir sogar in der Lage, verhältnismäßig latenzarme Verbindungen zu unserem &lt;a href="https://blog.zero-iee.com/posts/vpn-firewall-shorewall/">Management VPN&lt;/a> herzustellen. Wir sind gespannt, wie sich das System in ersten Feldversuchen schlagen wird.&lt;/p>
+&lt;hr>
+&lt;p>Quellen:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://www.waveshare.com/wiki/SIM7070G_Cat-M/NB-IoT/GPRS_HAT">Waveshare Wiki&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://www.waveshare.com/w/upload/3/39/SIM7080_Series_AT_Command_Manual_V1.02.pdf">SimCom AT Kommandoreferenz&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://www.waveshare.com/w/upload/4/47/SIM7080_Series_Linux_Application_Note_V1.00.pdf">SimCom Linux Application Note&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://tldp.org/HOWTO/PPP-HOWTO/x1219.html">ChatScript&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://www.digikey.jp/htmldatasheets/production/1833952/0/0/1/sim800-series-at-command-manual.html#pf12">Auto-Bouding explained in a SIM800 Series datasheet&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>
