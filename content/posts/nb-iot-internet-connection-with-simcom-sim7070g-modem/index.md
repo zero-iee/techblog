@@ -281,10 +281,10 @@ secondary DNS address 10.74.210.211
 Wer nun das M2M Netzwerk für seinen gesamten Internetverkehr verwenden will, kann die Default-Route darauf umstellen:
 
 ```
-	sudo ip route del default 
-	sudo ip -6 route del default
-	sudo ip route add default via 10.64.64.64 dev ppp0
-	sudo ip -6 route add default via fe80::1:2:47b1:3706 dev ppp0
+sudo ip route del default 
+sudo ip -6 route del default
+sudo ip route add default via 10.64.64.64 dev ppp0
+sudo ip -6 route add default via fe80::1:2:47b1:3706 dev ppp0
 ```
 
 Die IPv4-Gatewayadresse `10.64.64.64` wurde dem ppp Log entnommen - das IPv6 Pendant  `fe80::1:2:47b1:3706` wurde den IPv6 Routinginformationen mittels `ip -6 route` entnommen.
@@ -298,16 +298,18 @@ Die IPv4-Gatewayadresse `10.64.64.64` wurde dem ppp Log entnommen - das IPv6 Pen
 
 Standardmäßig bringt das ppp-Paket in Debian keinen Systemd Service für den PPP Daemon mit - aber kein Problem! Die Paketmaintainer von Arch Linux haben ein passendes [Service-File erstellt](https://gitlab.archlinux.org/archlinux/packaging/packages/ppp/-/blob/main/ppp.systemd?ref_type=heads):
 
-	[Unit]
-	Description=PPP link to %I
-	Before=network.target
-	
-	[Service]
-	Type=notify
-	ExecStart=/usr/sbin/pppd call %I nodetach nolog up_sdnotify
-	
-	[Install]
-	WantedBy=multi-user.target
+```
+[Unit]
+Description=PPP link to %I
+Before=network.target
+
+[Service]
+Type=notify
+ExecStart=/usr/sbin/pppd call %I nodetach nolog up_sdnotify
+
+[Install]
+WantedBy=multi-user.target
+```
 
 Dieses können wir unter `/etc/systemd/system/ppp@.service` speichern und den Daemon in den Boot-Autostart aufnehmen:
 
@@ -319,7 +321,6 @@ Dieses können wir unter `/etc/systemd/system/ppp@.service` speichern und den Da
 Der PPP Daemon kann selbstverständlich auch über ein Systemd "start" Kommando gestartet werden: 
 
 	sudo systemctl start ppp@telekomM2M.service
-
 
 
 
