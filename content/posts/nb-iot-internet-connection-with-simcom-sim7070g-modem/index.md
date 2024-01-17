@@ -1,7 +1,7 @@
 ---
 title: "Raspberry Pi mit Waveshare NB-IoT HAT / Simcom SIM7070G Modem zum Internet verbinden"
-date: 2024-01-15T12:42:27+01:00
-draft: true
+date: 2024-01-17T10:00:00+01:00
+draft: false
 author: "Thomas Leister"
 tags: ["iot", "nb-iot", "cellular", "mobileNetwork", "mobilfunk", "waveshare", "raspberrypi"]
 ---
