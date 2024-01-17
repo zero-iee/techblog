@@ -40,7 +40,7 @@ The initial switching to the high level can be carried out as follows:
 	echo "out" > /sys/class/gpio/gpio4/direction
 	echo "0" > /sys/class/gpio/gpio4/value
 
-_Reminder: "0" causes a low level on the NPN transistor and therefore an inverted "high" level on the modem!
+_Reminder: "0" causes a low level on the NPN transistor and therefore an inverted "high" level on the modem!_
 
 This command sequence is packed into the file `/etc/rc.local` before the `exit 0` instruction and thus executed once after each boot. By default, the modem should start after it has been supplied with power.
 
@@ -101,7 +101,7 @@ You can then start Minicom by entering
 
 to check whether AT commands are accepted. This ensures that we are talking to the correct console. If an "OK" is returned, everything is OK and the modem is responding to our commands. 
 
-Minicom can be exited again via `STRG+A` and `X`. 
+Minicom can be exited again via `CTRL+A` and `X`. 
 
 
 ## Switch to the Raspberry Pi's own serial interface
