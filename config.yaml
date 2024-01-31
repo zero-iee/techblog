@@ -31,4 +31,4 @@ params:
 
   plausibleAnalyticsEnabled: true
   plausibleAnalyticsDomain: blog.zero-iee.com
-  plausibleAnalyticsScriptUrl: http://analytics.zero-iee.com:8000/js/script.js
+  plausibleAnalyticsScriptUrl: https://analytics.zero-iee.com/js/script.js
