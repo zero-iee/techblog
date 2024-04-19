@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/posts/</link><description>ZERO GmbH Tech Blog (Posts)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Wed, 17 Jan 2024 10:00:00 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Raspberry Pi mit Waveshare NB-IoT HAT / Simcom SIM7070G Modem zum Internet verbinden</title><link>https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</link><pubDate>Wed, 17 Jan 2024 10:00:00 +0100</pubDate><guid>https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</guid><description>&lt;p>Wir haben uns das &amp;ldquo;Waveshare SIM7070G Cat-M/NB-IoT/GPRS HAT&amp;rdquo; für das Raspberry Pi genauer angesehen und in Betrieb genommen. Dabei haben wir verschiedene Fallstricke aufgedeckt und beschreiben im Folgenden, wie wir das NB-IoT Modem eingerichtet haben, um einen unserer &lt;a href="https://www.zero-iee.com/de/products/">#AMPS Nodes&lt;/a> mit dem Internet zu verbinden.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/posts/</link><description>ZERO GmbH Tech Blog (Posts)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Thu, 18 Apr 2024 15:11:30 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Raspberry Pi mit Waveshare NB-IoT HAT / Simcom SIM7070G Modem zum Internet verbinden</title><link>https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</link><pubDate>Wed, 17 Jan 2024 10:00:00 +0100</pubDate><guid>https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</guid><description>&lt;p>Wir haben uns das &amp;ldquo;Waveshare SIM7070G Cat-M/NB-IoT/GPRS HAT&amp;rdquo; für das Raspberry Pi genauer angesehen und in Betrieb genommen. Dabei haben wir verschiedene Fallstricke aufgedeckt und beschreiben im Folgenden, wie wir das NB-IoT Modem eingerichtet haben, um einen unserer &lt;a href="https://www.zero-iee.com/de/products/">#AMPS Nodes&lt;/a> mit dem Internet zu verbinden.&lt;/p>
 &lt;ul>
 &lt;li>Hardware:
 &lt;ul>
@@ -9,7 +9,7 @@
 &lt;/li>
 &lt;li>Software: Raspbian 12 &amp;ldquo;Bookworm&amp;rdquo;&lt;/li>
 &lt;/ul>
-&lt;p>&lt;img src="https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/images/waveshare-raspi.webp" alt="Animated Webp Image of the blinking Waveshare module attached to a Raspi">&lt;/p>
+&lt;p>&lt;img alt="Animated Webp Image of the blinking Waveshare module attached to a Raspi" src="https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/images/waveshare-raspi.webp">&lt;/p>
 &lt;h2 id="modem-an-raspberry-pi-anschließen" >Modem an Raspberry Pi anschließen
 &lt;span>
 &lt;a href="#modem-an-raspberry-pi-anschlie%c3%9fen">
@@ -363,7 +363,7 @@ sudo ./modemctl on
 &lt;p>gping Test:&lt;/p>
 &lt;pre>&lt;code>gping -i ppp0 -s -n 1.0 -b 60 1.1.1.1
 &lt;/code>&lt;/pre>
-&lt;p>&lt;img src="images/gping.webp" alt="gping Test mit dem oben erwähnten Kommando: Graph zeigt Latenz über 60 Sekunden">&lt;/p>
+&lt;p>&lt;img alt="gping Test mit dem oben erwähnten Kommando: Graph zeigt Latenz über 60 Sekunden" src="https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/images/gping.webp">&lt;/p>
 &lt;p>Download-Test mit:&lt;/p>
 &lt;pre>&lt;code>curl http://speedtest.tele2.net/1GB.zip -o /dev/null -m 60
 &lt;/code>&lt;/pre>
@@ -459,7 +459,7 @@ REJECT customer2-vpn customer2-vpn:10.3.0.0/16
 &lt;p>Kunde A wird so mit seinen Geräten niemals mit Geräten des Kunden B in Kontakt kommen können - dafür sorgen die individuellen VPN-Netze und unsere Firewallregeln, die den Datenverkehr innerhalb der VPNs und darüber hinaus beschränken. Es muss unbedingt verhindert werden, dass ein kompromittiertes Gerät die Kontrolle über sämtliche - auch kundenfremde - Nodes erhält.&lt;/p>
 &lt;p>In der Regel kann also von einem Node aus nicht aus einem Kunden-VPN heraus kommuniziert werden. Eine Ausnahme gibt es dann aber doch: Ein eigenes &amp;ldquo;Master VPN&amp;rdquo; (&lt;code>mastervpn&lt;/code>) erlaubt unseren Entwicklern, über dieses VPN Geräte &lt;em>aller anderen&lt;/em> VPNs zu erreichen. Statt sich also mit vielen verschiedenen Wireguard-Profilen herumschlagen zu müssen, genügt es, wenn unsere Entwickler eine Verbindung mit diesem einen Master VPN herstellen.&lt;/p>
 &lt;p>Unsere Netzwerktopologie sieht also in etwa so aus:&lt;/p>
-&lt;p>&lt;img src="images/wireguard-networks.svg" alt="Networks Graphics">&lt;/p>
+&lt;p>&lt;img alt="Networks Graphics" src="https://blog.zero-iee.com/posts/multi-tenant-wireguard-vpn-server/images/wireguard-networks.svg">&lt;/p>
 &lt;p>Die Firewallregeln auf dem VPN-Server vor der Implementierung der Sicherheitsmaßnahmen:&lt;/p>
 &lt;pre tabindex="0">&lt;code>root@vpnserver:~# iptables -L -v
 Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
@@ -799,7 +799,7 @@ Authoritative answers can be found from:
 &lt;li>Quectel RM520N&lt;/li>
 &lt;li>IoT SIM-Karte der Deutschen Telekom&lt;/li>
 &lt;/ul>
-&lt;figure>&lt;img src="images/waveshare-board.jpg"/>&lt;figcaption>
+&lt;figure>&lt;img src="https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/images/waveshare-board.jpg">&lt;figcaption>
 &lt;h4>Waveshare Board mit Quectel 5G Modem&lt;/h4>
 &lt;/figcaption>
 &lt;/figure>
@@ -835,7 +835,7 @@ Bus 002 Device 003: ID 1bc7:1070 Telit Wireless Solutions FN990
 &lt;/span>
 &lt;/h3>&lt;p>&lt;em>(dieses Problem betrifft nur das Telit Modem!)&lt;/em>&lt;/p>
 &lt;p>Ein Blick in die &lt;a href="https://www.waveshare.com/w/upload/4/46/CM4-DUAL-ETH-4G_5G-BASE_SchDoc.pdf">Schematics des Waveshare Boards&lt;/a> offenbarte, dass die Signalleitung (&amp;ldquo;CD&amp;rdquo; - &amp;ldquo;Card detect&amp;rdquo;) für die physische Erkennung einer SIM-Karte im Slot nicht zum M.2 Slot weitergeführt wird, sodass das Mobilfunkmodul kein entsprechendes Signal erkennen &lt;em>kann&lt;/em>. Kein Wunder also, dass uns permanent ein &amp;ldquo;&lt;strong>sim-missing&lt;/strong>&amp;rdquo; angezeigt wurde.&lt;/p>
-&lt;figure>&lt;img src="images/waveshare-schematics.png"/>&lt;figcaption>
+&lt;figure>&lt;img src="https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/images/waveshare-schematics.png">&lt;figcaption>
 &lt;h4>Screenshot des Waveshare Dual Ethernet IoT Base Boards&lt;/h4>
 &lt;/figcaption>
 &lt;/figure>
@@ -886,12 +886,12 @@ AT#HSEN=0,1
 &lt;/code>&lt;/pre>
 &lt;p>Insbes. die Angabe einer &lt;code>gsm.pin&lt;/code> ist wichtig, falls die SIM-Karte mit einer PIN geschützt ist. Unsere SIM ist nicht mit einer PIN geschützt, daher entfällt die Angabe.&lt;/p>
 &lt;p>Ein &lt;code>nmcli c&lt;/code> sollte nun zeigen, dass eine neue Verbindung &amp;ldquo;telekom&amp;rdquo; angelegt wurde. Ist die Verbindung grün markiert, hat die Anmeldung im Netzwerk funktioniert:&lt;/p>
-&lt;figure>&lt;img src="images/networkmanager-ok.png"/>&lt;figcaption>
+&lt;figure>&lt;img src="https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/images/networkmanager-ok.png">&lt;figcaption>
 &lt;h4>nmcli c&lt;/h4>
 &lt;/figcaption>
 &lt;/figure>
 &lt;p>Auch der ModemManager sollte nach einer kurzen Weile ähnlich wie hier aussehen und ein &amp;ldquo;connected&amp;rdquo; im Status zeigen: &lt;em>(&lt;code>mmcli -m 0&lt;/code>)&lt;/em>&lt;/p>
-&lt;figure>&lt;img src="images/modemmanager-ok.png"/>&lt;figcaption>
+&lt;figure>&lt;img src="https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/images/modemmanager-ok.png">&lt;figcaption>
 &lt;h4>mmcli -m 0&lt;/h4>
 &lt;/figcaption>
 &lt;/figure>

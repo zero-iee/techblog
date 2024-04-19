@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>mobilfunk on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/en/tags/mobilfunk/</link><description>ZERO GmbH Tech Blog (mobilfunk)</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Wed, 17 Jan 2024 10:00:00 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/en/tags/mobilfunk/index.xml" rel="self" type="application/rss+xml"/><item><title>Connecting a Raspberry Pi to the Internet with Waveshare NB-IoT HAT / Simcom SIM7070G modem</title><link>https://blog.zero-iee.com/en/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</link><pubDate>Wed, 17 Jan 2024 10:00:00 +0100</pubDate><guid>https://blog.zero-iee.com/en/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</guid><description>&lt;p>We took a closer look at the &amp;ldquo;Waveshare SIM7070G Cat-M/NB-IoT/GPRS HAT&amp;rdquo; for the Raspberry Pi and put it into operation. We uncovered various pitfalls and describe below how we set up the NB-IoT modem to connect one of our &lt;a href="https://www.zero-iee.com/de/products/">#AMPS nodes&lt;/a> to the internet.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Mobilfunk on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/en/tags/mobilfunk/</link><description>ZERO GmbH Tech Blog (Mobilfunk)</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Wed, 17 Jan 2024 10:00:00 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/en/tags/mobilfunk/index.xml" rel="self" type="application/rss+xml"/><item><title>Connecting a Raspberry Pi to the Internet with Waveshare NB-IoT HAT / Simcom SIM7070G modem</title><link>https://blog.zero-iee.com/en/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</link><pubDate>Wed, 17 Jan 2024 10:00:00 +0100</pubDate><guid>https://blog.zero-iee.com/en/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</guid><description>&lt;p>We took a closer look at the &amp;ldquo;Waveshare SIM7070G Cat-M/NB-IoT/GPRS HAT&amp;rdquo; for the Raspberry Pi and put it into operation. We uncovered various pitfalls and describe below how we set up the NB-IoT modem to connect one of our &lt;a href="https://www.zero-iee.com/de/products/">#AMPS nodes&lt;/a> to the internet.&lt;/p>
 &lt;ul>
 &lt;li>Hardware:
 &lt;ul>
@@ -9,7 +9,7 @@
 &lt;/li>
 &lt;li>Software: Raspbian 12 &amp;ldquo;Bookworm&amp;rdquo;&lt;/li>
 &lt;/ul>
-&lt;p>&lt;img src="https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/images/waveshare-raspi.webp" alt="Animated Webp Image of the blinking Waveshare module attached to a Raspi">&lt;/p>
+&lt;p>&lt;img alt="Animated Webp Image of the blinking Waveshare module attached to a Raspi" src="https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/images/waveshare-raspi.webp">&lt;/p>
 &lt;h2 id="connecting-the-modem-to-the-raspberry-pi" >Connecting the modem to the Raspberry Pi
 &lt;span>
 &lt;a href="#connecting-the-modem-to-the-raspberry-pi">
@@ -363,7 +363,7 @@ sudo ./modemctl on
 &lt;p>gping test:&lt;/p>
 &lt;pre>&lt;code>gping -i ppp0 -s -n 1.0 -b 60 1.1.1.1
 &lt;/code>&lt;/pre>
-&lt;p>&lt;img src="images/gping.webp" alt="gping test with the above mentioned command: Graph shows latency over 60 seconds">&lt;/p>
+&lt;p>&lt;img alt="gping test with the above mentioned command: Graph shows latency over 60 seconds" src="https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/images/gping.webp">&lt;/p>
 &lt;p>Download test with:&lt;/p>
 &lt;pre>&lt;code>curl http://speedtest.tele2.net/1GB.zip -o /dev/null -m 60
 &lt;/code>&lt;/pre>
@@ -375,7 +375,7 @@ sudo ./modemctl on
 &lt;p>By the way: If you want to simulate locally (regardless of the latency) how an SSH session &amp;ldquo;feels&amp;rdquo; at the data transfer rate we measured, you can use the following command:&lt;/p>
 &lt;pre>&lt;code>ssh -o ProxyCommand='pv -qL 9K | nc %h %p | pv -qL 9K' user@target-machine
 &lt;/code>&lt;/pre>
-&lt;p>To summarise, however, it can be said that the data rate is sufficient for the above-mentioned purposes. Thanks to &lt;a href="https://www.wireguard.com/">Wireguard&lt;/a>&amp;rsquo;s lean VPN protocol, we are even able to establish relatively low-latency connections to our &lt;a href="https://blog.zero-iee.com/posts/vpn-firewall-shorewall/">Management VPN&lt;/a>. We are curious to see how the system will perform in initial field tests.&lt;/p>
+&lt;p>To summarise, however, it can be said that the data rate is sufficient for the above-mentioned purposes. Thanks to &lt;a href="https://www.wireguard.com/">Wireguard&lt;/a>&amp;rsquo;s lean VPN protocol, we are even able to establish relatively low-latency connections to our &lt;a href="https://blog.zero-iee.com/en/posts/vpn-firewall-shorewall/">Management VPN&lt;/a>. We are curious to see how the system will perform in initial field tests.&lt;/p>
 &lt;hr>
 &lt;p>Sources:&lt;/p>
 &lt;ul>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>quectel on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/en/tags/quectel/</link><description>ZERO GmbH Tech Blog (quectel)</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Wed, 31 May 2023 12:44:58 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/en/tags/quectel/index.xml" rel="self" type="application/rss+xml"/><item><title>Using Quectel RM520M and Telit FM990A28 5G Modem with Raspberry Pi OS</title><link>https://blog.zero-iee.com/en/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</link><pubDate>Wed, 31 May 2023 12:44:58 +0200</pubDate><guid>https://blog.zero-iee.com/en/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</guid><description>&lt;p>On our odyssey in search of a 5G cellular modem, we have tried several modems from different manufacturers. Unfortunately, the commissioning was not always successful. Sometimes the driver support in the Linux kernel was completely missing - sometimes the control via NetworkManager / ModemManager was buggy or not possible at all.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Quectel on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/en/tags/quectel/</link><description>ZERO GmbH Tech Blog (Quectel)</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Wed, 31 May 2023 12:44:58 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/en/tags/quectel/index.xml" rel="self" type="application/rss+xml"/><item><title>Using Quectel RM520M and Telit FM990A28 5G Modem with Raspberry Pi OS</title><link>https://blog.zero-iee.com/en/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</link><pubDate>Wed, 31 May 2023 12:44:58 +0200</pubDate><guid>https://blog.zero-iee.com/en/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</guid><description>&lt;p>On our odyssey in search of a 5G cellular modem, we have tried several modems from different manufacturers. Unfortunately, the commissioning was not always successful. Sometimes the driver support in the Linux kernel was completely missing - sometimes the control via NetworkManager / ModemManager was buggy or not possible at all.&lt;/p>
 &lt;p>Easy commissioning and stable operation are important to us. Since we do not want to use the modems on only a few devices, a manual adaptation of the Linux kernel is usually out of the question for us. The effort involved is too great and the consequences for the further life cycle of a product are too unclear. Therefore, the operating system - often a Raspberry Pi OS - should be used in its factory state and without major adjustments, if possible.&lt;/p>
 &lt;p>&lt;strong>Two modems have emerged for us that work &amp;ldquo;out of the box&amp;rdquo; in combination with the current &lt;a href="https://www.raspberrypi.com/software/operating-systems/">Raspberry Pi OS&lt;/a> on Debian 11 &amp;ldquo;Bullseye&amp;rdquo; basis (kernel 6.1):&lt;/strong>&lt;/p>
 &lt;ul>
@@ -20,7 +20,7 @@
 &lt;li>Quectel RM520N&lt;/li>
 &lt;li>IoT SIM card of Deutsche Telekom&lt;/li>
 &lt;/ul>
-&lt;figure>&lt;img src="images/waveshare-board.jpg"/>&lt;figcaption>
+&lt;figure>&lt;img src="https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/images/waveshare-board.jpg">&lt;figcaption>
 &lt;h4>Waveshare Board with Quectel 5G Modem&lt;/h4>
 &lt;/figcaption>
 &lt;/figure>
@@ -56,7 +56,7 @@ Bus 002 Device 003: ID 1bc7:1070 Telit Wireless Solutions FN990
 &lt;/span>
 &lt;/h3>&lt;p>&lt;em>(This problem does not occur with the Quectel modem!)&lt;/em>&lt;/p>
 &lt;p>A look into the &lt;a href="https://www.waveshare.com/w/upload/4/46/CM4-DUAL-ETH-4G_5G-BASE_SchDoc.pdf">Schematics of the Waveshare Board&lt;/a> revealed that the signal line (&amp;ldquo;CD&amp;rdquo; - &amp;ldquo;Card detect&amp;rdquo;) for the physical detection of a SIM card in the slot is not continued to the M.2 slot, so that the cellular module &lt;em>cannot&lt;/em> detect a corresponding signal. No wonder, then, that we were permanently shown a &amp;ldquo;&lt;strong>sim-missing&lt;/strong>&amp;rdquo;.&lt;/p>
-&lt;figure>&lt;img src="images/waveshare-schematics.png"/>&lt;figcaption>
+&lt;figure>&lt;img src="https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/images/waveshare-schematics.png">&lt;figcaption>
 &lt;h4>Screenshot of the Waveshare Dual Ethernet IoT Base Board&lt;/h4>
 &lt;/figcaption>
 &lt;/figure>
@@ -107,12 +107,12 @@ AT#HSEN=0,1
 &lt;/code>&lt;/pre>
 &lt;p>Especially the specification of a &lt;code>gsm.pin&lt;/code> is important if the SIM card is protected with a PIN. Our SIM is not protected with a PIN, so the specification is omitted.&lt;/p>
 &lt;p>A &lt;code>nmcli c&lt;/code> should now show that a new connection &amp;ldquo;telekom&amp;rdquo; has been created. If the connection is marked green, the login to the network has worked:&lt;/p>
-&lt;figure>&lt;img src="images/networkmanager-ok.png"/>&lt;figcaption>
+&lt;figure>&lt;img src="https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/images/networkmanager-ok.png">&lt;figcaption>
 &lt;h4>nmcli c&lt;/h4>
 &lt;/figcaption>
 &lt;/figure>
 &lt;p>The ModemManager should also look similar to this after a short while, showing a &amp;ldquo;connected&amp;rdquo; in the status: &lt;em>(&lt;code>mmcli -m 0&lt;/code>)&lt;/em>&lt;/p>
-&lt;figure>&lt;img src="images/modemmanager-ok.png"/>&lt;figcaption>
+&lt;figure>&lt;img src="https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/images/modemmanager-ok.png">&lt;figcaption>
 &lt;h4>mmcli -m 0&lt;/h4>
 &lt;/figcaption>
 &lt;/figure>

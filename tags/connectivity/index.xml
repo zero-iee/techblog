@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>connectivity on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/connectivity/</link><description>ZERO GmbH Tech Blog (connectivity)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Wed, 31 May 2023 12:44:58 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/connectivity/index.xml" rel="self" type="application/rss+xml"/><item><title>Quectel RM520M und Telit FM990A28 5G Modem mit Raspberry Pi OS nutzen</title><link>https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</link><pubDate>Wed, 31 May 2023 12:44:58 +0200</pubDate><guid>https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</guid><description>&lt;p>Auf unserer Odyssee auf der Suche nach einem 5G Mobilfunkmodem haben wir mittlerweile einige Modems verschiedener Hersteller ausprobiert. Leider war die Inbetriebnahme nicht immer erfolgreich. Mal fehlte der Treibersupport im Linux-Kernel gänzlich - mal war die Ansteuerung via NetworkManager / ModemManager fehlerbehaftet oder überhaupt nicht möglich.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Connectivity on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/connectivity/</link><description>ZERO GmbH Tech Blog (Connectivity)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Wed, 31 May 2023 12:44:58 +0200</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/connectivity/index.xml" rel="self" type="application/rss+xml"/><item><title>Quectel RM520M und Telit FM990A28 5G Modem mit Raspberry Pi OS nutzen</title><link>https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</link><pubDate>Wed, 31 May 2023 12:44:58 +0200</pubDate><guid>https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/</guid><description>&lt;p>Auf unserer Odyssee auf der Suche nach einem 5G Mobilfunkmodem haben wir mittlerweile einige Modems verschiedener Hersteller ausprobiert. Leider war die Inbetriebnahme nicht immer erfolgreich. Mal fehlte der Treibersupport im Linux-Kernel gänzlich - mal war die Ansteuerung via NetworkManager / ModemManager fehlerbehaftet oder überhaupt nicht möglich.&lt;/p>
 &lt;p>Uns ist eine einfache Inbetriebnahme und ein stabiler Betrieb wichtig. Da wir die Modems nicht nur auf einigen wenigen Geräten einsetzen wollen, kommt für uns eine manuelle Anpassung des Linux-Kernels in der Regel nicht infrage. Zu groß ist der damit verbundene Aufwand und zu unübersichtlich sind die Folgen, die sich daraus für den weiteren Lebenszyklus eines Produkts ergeben. Daher soll das Betriebssystem - oftmals ein Raspberry Pi OS - möglichst im Werkszustand und ohne große Anpassungen genutzt werden.&lt;/p>
 &lt;p>&lt;strong>Mittlerweile haben sich für uns zwei Modems herauskristallisiert, die in Kombination mit dem aktuellen &lt;a href="https://www.raspberrypi.com/software/operating-systems/">Raspberry Pi OS&lt;/a> auf Debian 11 &amp;ldquo;Bullseye&amp;rdquo; Basis (Kernel 6.1) &amp;ldquo;out of the box&amp;rdquo; funktionieren:&lt;/strong>&lt;/p>
 &lt;ul>
@@ -20,7 +20,7 @@
 &lt;li>Quectel RM520N&lt;/li>
 &lt;li>IoT SIM-Karte der Deutschen Telekom&lt;/li>
 &lt;/ul>
-&lt;figure>&lt;img src="images/waveshare-board.jpg"/>&lt;figcaption>
+&lt;figure>&lt;img src="https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/images/waveshare-board.jpg">&lt;figcaption>
 &lt;h4>Waveshare Board mit Quectel 5G Modem&lt;/h4>
 &lt;/figcaption>
 &lt;/figure>
@@ -56,7 +56,7 @@ Bus 002 Device 003: ID 1bc7:1070 Telit Wireless Solutions FN990
 &lt;/span>
 &lt;/h3>&lt;p>&lt;em>(dieses Problem betrifft nur das Telit Modem!)&lt;/em>&lt;/p>
 &lt;p>Ein Blick in die &lt;a href="https://www.waveshare.com/w/upload/4/46/CM4-DUAL-ETH-4G_5G-BASE_SchDoc.pdf">Schematics des Waveshare Boards&lt;/a> offenbarte, dass die Signalleitung (&amp;ldquo;CD&amp;rdquo; - &amp;ldquo;Card detect&amp;rdquo;) für die physische Erkennung einer SIM-Karte im Slot nicht zum M.2 Slot weitergeführt wird, sodass das Mobilfunkmodul kein entsprechendes Signal erkennen &lt;em>kann&lt;/em>. Kein Wunder also, dass uns permanent ein &amp;ldquo;&lt;strong>sim-missing&lt;/strong>&amp;rdquo; angezeigt wurde.&lt;/p>
-&lt;figure>&lt;img src="images/waveshare-schematics.png"/>&lt;figcaption>
+&lt;figure>&lt;img src="https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/images/waveshare-schematics.png">&lt;figcaption>
 &lt;h4>Screenshot des Waveshare Dual Ethernet IoT Base Boards&lt;/h4>
 &lt;/figcaption>
 &lt;/figure>
@@ -107,12 +107,12 @@ AT#HSEN=0,1
 &lt;/code>&lt;/pre>
 &lt;p>Insbes. die Angabe einer &lt;code>gsm.pin&lt;/code> ist wichtig, falls die SIM-Karte mit einer PIN geschützt ist. Unsere SIM ist nicht mit einer PIN geschützt, daher entfällt die Angabe.&lt;/p>
 &lt;p>Ein &lt;code>nmcli c&lt;/code> sollte nun zeigen, dass eine neue Verbindung &amp;ldquo;telekom&amp;rdquo; angelegt wurde. Ist die Verbindung grün markiert, hat die Anmeldung im Netzwerk funktioniert:&lt;/p>
-&lt;figure>&lt;img src="images/networkmanager-ok.png"/>&lt;figcaption>
+&lt;figure>&lt;img src="https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/images/networkmanager-ok.png">&lt;figcaption>
 &lt;h4>nmcli c&lt;/h4>
 &lt;/figcaption>
 &lt;/figure>
 &lt;p>Auch der ModemManager sollte nach einer kurzen Weile ähnlich wie hier aussehen und ein &amp;ldquo;connected&amp;rdquo; im Status zeigen: &lt;em>(&lt;code>mmcli -m 0&lt;/code>)&lt;/em>&lt;/p>
-&lt;figure>&lt;img src="images/modemmanager-ok.png"/>&lt;figcaption>
+&lt;figure>&lt;img src="https://blog.zero-iee.com/posts/quectel-rm520n-and-telit-fn990a28-5g-modems-on-raspberrypi-os/images/modemmanager-ok.png">&lt;figcaption>
 &lt;h4>mmcli -m 0&lt;/h4>
 &lt;/figcaption>
 &lt;/figure>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>nb-iot on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/nb-iot/</link><description>ZERO GmbH Tech Blog (nb-iot)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Wed, 17 Jan 2024 10:00:00 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/nb-iot/index.xml" rel="self" type="application/rss+xml"/><item><title>Raspberry Pi mit Waveshare NB-IoT HAT / Simcom SIM7070G Modem zum Internet verbinden</title><link>https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</link><pubDate>Wed, 17 Jan 2024 10:00:00 +0100</pubDate><guid>https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</guid><description>&lt;p>Wir haben uns das &amp;ldquo;Waveshare SIM7070G Cat-M/NB-IoT/GPRS HAT&amp;rdquo; für das Raspberry Pi genauer angesehen und in Betrieb genommen. Dabei haben wir verschiedene Fallstricke aufgedeckt und beschreiben im Folgenden, wie wir das NB-IoT Modem eingerichtet haben, um einen unserer &lt;a href="https://www.zero-iee.com/de/products/">#AMPS Nodes&lt;/a> mit dem Internet zu verbinden.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Nb-Iot on ZERO GmbH Tech Blog</title><link>https://blog.zero-iee.com/tags/nb-iot/</link><description>ZERO GmbH Tech Blog (Nb-Iot)</description><generator>Hugo -- gohugo.io</generator><language>de</language><lastBuildDate>Wed, 17 Jan 2024 10:00:00 +0100</lastBuildDate><atom:link href="https://blog.zero-iee.com/tags/nb-iot/index.xml" rel="self" type="application/rss+xml"/><item><title>Raspberry Pi mit Waveshare NB-IoT HAT / Simcom SIM7070G Modem zum Internet verbinden</title><link>https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</link><pubDate>Wed, 17 Jan 2024 10:00:00 +0100</pubDate><guid>https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/</guid><description>&lt;p>Wir haben uns das &amp;ldquo;Waveshare SIM7070G Cat-M/NB-IoT/GPRS HAT&amp;rdquo; für das Raspberry Pi genauer angesehen und in Betrieb genommen. Dabei haben wir verschiedene Fallstricke aufgedeckt und beschreiben im Folgenden, wie wir das NB-IoT Modem eingerichtet haben, um einen unserer &lt;a href="https://www.zero-iee.com/de/products/">#AMPS Nodes&lt;/a> mit dem Internet zu verbinden.&lt;/p>
 &lt;ul>
 &lt;li>Hardware:
 &lt;ul>
@@ -9,7 +9,7 @@
 &lt;/li>
 &lt;li>Software: Raspbian 12 &amp;ldquo;Bookworm&amp;rdquo;&lt;/li>
 &lt;/ul>
-&lt;p>&lt;img src="https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/images/waveshare-raspi.webp" alt="Animated Webp Image of the blinking Waveshare module attached to a Raspi">&lt;/p>
+&lt;p>&lt;img alt="Animated Webp Image of the blinking Waveshare module attached to a Raspi" src="https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/images/waveshare-raspi.webp">&lt;/p>
 &lt;h2 id="modem-an-raspberry-pi-anschließen" >Modem an Raspberry Pi anschließen
 &lt;span>
 &lt;a href="#modem-an-raspberry-pi-anschlie%c3%9fen">
@@ -363,7 +363,7 @@ sudo ./modemctl on
 &lt;p>gping Test:&lt;/p>
 &lt;pre>&lt;code>gping -i ppp0 -s -n 1.0 -b 60 1.1.1.1
 &lt;/code>&lt;/pre>
-&lt;p>&lt;img src="images/gping.webp" alt="gping Test mit dem oben erwähnten Kommando: Graph zeigt Latenz über 60 Sekunden">&lt;/p>
+&lt;p>&lt;img alt="gping Test mit dem oben erwähnten Kommando: Graph zeigt Latenz über 60 Sekunden" src="https://blog.zero-iee.com/posts/nb-iot-internet-connection-with-simcom-sim7070g-modem/images/gping.webp">&lt;/p>
 &lt;p>Download-Test mit:&lt;/p>
 &lt;pre>&lt;code>curl http://speedtest.tele2.net/1GB.zip -o /dev/null -m 60
 &lt;/code>&lt;/pre>
