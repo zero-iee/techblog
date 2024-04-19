@@ -1,7 +1,7 @@
 ---
 title: "Wie wir die Quectel RN520G Stabilitätsprobleme in Kombination mit einem Raspberry Pi gelöst haben"
-date: 2024-04-18T15:11:30+02:00
-draft: true
+date: 2024-04-19T10:00:00+02:00
+draft: false
 author: "Thomas Leister"
 tags: ["mobilfunk", "connectivity", "5g", "smartCity", "quectel", "raspberrypi" ]
 ---
