@@ -1,7 +1,7 @@
 ---
 title: "Dnsmasq startet nicht wegen belegtem Port 53"
 date: 2024-09-06T17:33:54+02:00
-draft: false
+draft: true
 author: "Thomas Leister"
 tags: ["dnsmasq", "systemd"]
 ---
@@ -10,14 +10,11 @@ Vielleicht ist der ein oder andere auch schon einmal in das Problem gelaufen, al
 
 ```
 $ sudo systemctl status dnsmasq
-
-[...]
 Sep 06 14:32:22 office-gateway dnsmasq[830]: failed to create listening socket for port 53: Address already in use
 Sep 06 14:32:22 office-gateway dnsmasq[830]: FAILED to start up
 Sep 06 14:32:22 office-gateway systemd[1]: dnsmasq.service: Control process exited, code=exited, status=2/INVALIDARGUMENT
 Sep 06 14:32:22 office-gateway systemd[1]: dnsmasq.service: Failed with result 'exit-code'.
 Sep 06 14:32:22 office-gateway systemd[1]: Failed to start dnsmasq.service - dnsmasq - A lightweight DHCP and caching DNS server.
-[...]
 ```
 
 Die Ursache war uns - dachten wir - schnell klar, denn auf dem fraglichen Ubuntu Server System befindet sich an Werk bereits der lokale `systemd-resolved` Resolver, der auf Port 53 bereits hervorragende Leiste leistet. Der Dnsmasq-Service, der neben DHCP auch einen DNS-Service auf Port 53 anbieten will, kann den Port so nicht mehr an sich reißen. 
@@ -46,6 +43,6 @@ Wir haben uns zusätzlich dazu entschieden, Dnsmasq explizit nur auf dem gewüns
 interface=enp0s31f6
 ```
 
-_(diese Maßnahme alleine führte übrigens auch nicht zum Erfolg - DNSMASQ_EXCEPT="lo" scheint dennoch notwendig zu sein.)_
+_(diese Maßnahme alleine führte übrigens nicht zum Erfolg - DNSMASQ_EXCEPT="lo" scheint dennoch notwendig zu sein.)_
 
 
