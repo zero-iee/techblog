@@ -1,12 +1,14 @@
 ---
 title: "Dnsmasq does not start because port 53 is busy"
 date: 2024-09-06T17:33:54+02:00
-draft: true
+draft: false
 author: "Thomas Leister"
-tags: ["dnsmasq", "systemd"]
+tags: ["dnsmasq", "systemd-resolved", "systemd", "dns", "linux", "ubuntu"]
 ---
 
-Perhaps some of you have already run into this problem when Dnsmasq was to be used as a separate DNS/DHCP server on a host with an extra network interface: 
+<!--more-->
+
+After installing Dnsmasq, the service started unsurprisingly with an error message:
 
 ```
 $ sudo systemctl status dnsmasq
@@ -15,35 +17,39 @@ Sep 06 14:32:22 office-gateway dnsmasq[830]: FAILED to start up
 Sep 06 14:32:22 office-gateway systemd[1]: dnsmasq.service: Control process exited, code=exited, status=2/INVALIDARGUMENT
 Sep 06 14:32:22 office-gateway systemd[1]: dnsmasq.service: Failed with result 'exit-code'.
 Sep 06 14:32:22 office-gateway systemd[1]: Failed to start dnsmasq.service - dnsmasq - A lightweight DHCP and caching DNS server.
-
 ```
 
-The cause was - we thought - quickly clear to us, because the Ubuntu server system in question is already equipped with the local `systemd-resolved` resolver, which already performs excellently on port 53. The Dnsmasq service, which in addition to DHCP also wants to offer a DNS service on port 53, can no longer hijack the port. 
+The cause was quickly clear: Dnsmasq is apparently trying to spread itself on the local loopback interface `lo` in order to offer a DNS resolver on port 53. The problem is that this port is already occupied by `systemd-resolved`. We thought the problem could be solved simply by instructing Dnsmasq to listen only to the lab network interface. This can be set in the Dnsmasq configuration as follows: 
 
-We thought that we could avoid the problem by making an exception for the network interfaces, because interfaces that should be ignored can be specified for Dnsmasq via `except-interface`. File `/etc/dnsmasq.conf`:
-
-```
-except-interface=lo
-```
-
-But that didn't help. The problem still persisted.
-
-Finally, we found an option in `/etc/defaults/dnsmasq` that causes Dnsmasq to ignore all local interfaces: 
-
-```
-# If the resolvconf package is installed, dnsmasq will tell resolvconf
-# to use dnsmasq under 127.0.0.1 as the system's default resolver.
-# Uncommenting this line inhibits this behaviour.
-DNSMASQ_EXCEPT="lo"
-```
-
-The option must be commented in - as shown - for it to become active. After restarting the `dnsmasq` service, the two DNS services will no longer interfere with each other. 
-We have also decided to explicitly activate Dnsmasq only on the desired interface. File `/etc/dnsmasq.conf`:
 
 ```
 interface=enp0s31f6
 ```
 
-_(this measure alone did not lead to success - `DNSMASQ_EXCEPT="lo"` seems to be necessary!)_
+Alternatively, all interfaces _except_ a specific one can be listened to: 
 
+```
+except-interface=lo
+```
 
+However, even after this adjustment, Dnsmasq gave us the above error message: Port 53 was already blocked. 
+
+After some research, we came across the following Dnsmasq parameters:
+
+> -z, --bind-interfaces
+    On systems which support it, dnsmasq binds the wildcard address, even when it is listening on only some interfaces. It then discards requests that it shouldn't reply to. This has the advantage of working even when interfaces come and go and change address. This option forces dnsmasq to really bind only the interfaces it is listening on. About the only time when this is useful is when running another nameserver (or another instance of dnsmasq) on the same machine. Setting this option also enables multiple instances of dnsmasq which provide DHCP service to run in the same machine. 
+
+_https://linux.die.net/man/8/dnsmasq_
+
+... and that explained our problem: 
+
+By default, Dnsmasq also binds _all_ interfaces (regardless of whether `interface=` or `except-interface=` are used!) and only ignores requests if requests are received on interfaces for which exceptions apply. Our `interface=` setting was therefore effective in a different way than we thought: Only requests on the `lo` interface were ignored. Dnsmasq still requested control over `lo` port 53 (through a “bind”).
+
+To resolve the conflict, we simply added a `bind-interfaces` to our settings: 
+
+```
+bind-interfaces
+interface=enp0s31f6
+```
+
+... and could now run Dnsmasq and `systemd-resolved` at the same time. 
